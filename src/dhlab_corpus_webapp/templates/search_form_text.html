@@ -1,0 +1,12 @@
+<form
+    id="search-form"
+    hx-get="search"
+    hx-trigger="clicked, change, submit"
+    hx-target="#search-results"
+    hx-indicator="#loading-text"
+    hx-request='{"noHeaders": true}'
+    hx-include="[name='embedding_type'], [name='text_embedding_type']"
+>
+    <label for="search">Skriv inn ord du vil bruke for å søke etter bilder:</label>
+    <input class="form-control" type="search" name="search" placeholder="Stikkord her">
+</form>
