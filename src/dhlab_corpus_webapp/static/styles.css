@@ -2,8 +2,8 @@
     --small-margin: 10px;
     --links: var(--nb-color);
     --column-width: 200px;
-    --body-width: calc(var(--column-width)*5 + var(--small-margin)*4);
-    --sidebar-width: calc(var(--column-width) + 2*var(--small-margin))
+    --body-width: calc(var(--column-width)*10 + var(--small-margin)*4); 
+    --sidebar-width: calc(var(--column-width) + 2*var(--small-margin));
 }
 a {
     font-weight: var(--font-weight-medium);
@@ -11,8 +11,12 @@ a {
 
 
 body {
-    max-width: var(--body-width);  
-    font-family: var(--nb-font-family);
+    max-width: var(--body-width); 
+    font-family: var(--nb-font-family)!important;
+    transform: scale(0.8);  /* Scale the page to 90% of its size */
+    transform-origin: top center;  /* Ensure it scales from the top-left corner*/
+    width: 100%;  /* Ensure it still takes up the full width */
+    height: 100%;  /* Make sure it occupies the full height of the screen */
 }
 .banner{
     color: var(--nb-logo-color);
@@ -245,6 +249,30 @@ input, select {
     min-width: 300px;
 }
 
+#doc-type-selection{
+    background-color:white;
+}
+
+#search-type-language {
+    flex: 4;
+    min-width: 300px;
+}
+
+#search-type-author {
+    flex: 4;
+    min-width: 300px;
+}
+
+#search-type-title {
+    flex: 4;
+    min-width: 300px;
+}
+
+#search-type-words-phrases {
+    flex: 4;
+    min-width: 300px;
+}
+
 #search-type-num-docs {
     flex: 2;
     min-width: 200px;
@@ -256,6 +284,11 @@ input, select {
 }
 
 #search-type-download {
+    flex: 2;
+    display: column;
+    min-width: 200px;
+}
+#search-type-from-year, #search-type-to-year {
     flex: 2;
     min-width: 200px;
 }
@@ -279,6 +312,20 @@ input, select {
     width: 100%;
 }
 
+div.make-corpus {
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 15px;
+
+}
+
+.submit-button {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
 
 .download-button {
     display: flex;
@@ -288,6 +335,7 @@ input, select {
     margin-top: var(--small-margin);
     width: 100%;
 }
+
 
 #search{
     flex: 3;
@@ -335,8 +383,7 @@ input, select {
     height: 100%;
     background-color: var(--background-body);
     border-right: solid 1px var(--border);  
-    transition:
-        width 0.5s;
+    transition: width 0.5s;
     z-index: 2;
 }
 
@@ -359,7 +406,6 @@ input, select {
     background-color: rgba(0,0,0,0.5);
     display: none;
 }
-
 
 
 .disabled #search-settings-overlay {
@@ -387,71 +433,158 @@ fieldset {
     border-color: var(--nb-color);
 }
 
-
-.page-container {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
 .content {
     flex: 1 0 auto;
 }
 
-.table-section {
-    margin-bottom: auto;
+.help-tooltip {
+    color: black;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
 }
 
-.help-icon {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    line-height: 14px;
-    text-align: center;
-    border-radius: 50%;
-    border: 1px solid #666;
-    color: #666;
-    font-size: 12px;
-    margin-left: 4px;
-    cursor: help;
-    position: relative;  /* Required for positioning the tooltip */
+.help-text {
+    display: none;  
+    position: absolute; 
+    bottom: 90%; 
+    left:300%;
+    transform: translateX(-50%); 
+    background-color:  #f9f9f9;
+    color: black; 
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 16px;
+    white-space: nowrap; 
+    z-index: 10; 
 }
 
-/* Custom tooltip */
-.help-icon::before {
-    content: attr(data-tooltip);
+.help-icon:hover + .help-text{
+    display: block; 
+}
+
+.help-text {
+    transition: opacity 0.2s ease-in-out;
+}
+
+.dropdown {
+  width: 100%;
+  box-sizing: border-box;
+
+}
+
+.dropdown-toggle {
+    flex: 2;
+    width: 100%;
+    font-family: var(--nb-font-family-secondary);
+    box-sizing: border-box;
+    font-size: inherit;
+    margin-right: 6px;
+    margin-bottom: 6px;
+    padding: 10px;
+    padding-right: 10px;
+    border: none;
+    border-radius: 6px;
+    outline: none;
+    background: var(--background) var(--select-arrow) calc(100% - 12px) 50% / 12px no-repeat;
+    padding-right: 35px;
+}
+
+.dropdown-arrow {
+    margin-left: 93px; 
+    font-size: 18px;   
+    transition: transform 0.3s ease;  
+}
+
+.dropdown-content {
+    font-size: 20px;
+    display: none;
     position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 8px 12px;
-    background-color: #333;
-    color: white;
-    font-family: Arial, sans-serif;  /* Change the font */
-    font-size: 14px;  /* Change the font size */
-    border-radius: 4px;
-    white-space: nowrap;
-    visibility: hidden;
-    opacity: 0;
-    transition: opacity 0.2s;
-    
-    /* Make the tooltip wider */
+    background: var(--background) var(--select-arrow) calc(100% - 12px) 50% / 12px no-repeat;
     min-width: 200px;
-    text-align: center;
+    max-height: 150px; 
+    overflow-y: auto;  
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+    padding: 10px;
+    border-radius: 20px;
 }
 
-/* Small arrow at the bottom of the tooltip */
-.help-icon::after {
-    content: "";
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 6px solid transparent;
-    border-top-color: #333;
-    visibility: hidden;
-    opacity: 0;
-    transition: opacity 0.2s;
+.dropdown.open .dropdown-content {
+    display: block;
 }
 
+label {
+    display: block;
+    padding: 5px;
+}
+
+input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+#searchBox {
+    display: none;
+}
+
+.search-box {
+    margin-top: 20px;
+}
+
+#searchBox {
+    padding: 10px;
+    width: 200px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.tag {
+    background-color: #4CAF50;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 16px;
+    margin: 2px;
+    font-size: 14px;
+    display: inline-block;
+}
+
+.tag span {
+    cursor: pointer;
+    margin-left: 5px;
+    font-weight: bold;
+}
+
+#selectedItems {
+    margin-top: 20px;
+    font-weight: bold;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
 
