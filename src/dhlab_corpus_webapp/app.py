@@ -8,7 +8,7 @@ def create_app() -> Flask:
     #Route for the homepage (index)
     @app.route("/")
     def index() -> str:
-        return render_template("index_base.html", res_table="")
+        return render_template("index_base.html")
 
     #Route to handle form submission and generate corpus
     @app.route('/submit-form', methods=['POST'])
@@ -19,7 +19,7 @@ def create_app() -> Flask:
 
         df_from_corpus = process_corpus_data(corpus)
 
-        return render_template('index_base.html', 
+        return render_template('table.html', 
                                corpus_name_=form_data['corpus_name'], 
                                res_table=df_from_corpus.to_html(table_id='results_table', border=0))
 

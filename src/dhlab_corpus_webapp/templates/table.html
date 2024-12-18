@@ -1,0 +1,33 @@
+{% extends "index_base.html" %}
+
+{% block table %}
+
+<div class="datatable-container">
+    <div class="scrollable-table-container"> 
+    {{res_table | safe}}
+</div>
+</div>
+    <script>
+    	alert("Her er jeg!");
+         var corpusName = "{{ corpus_name_ }}";  //Render the Flask variable into JavaScript
+        new DataTable('#results_table', {
+            paging: false,
+            layout: {
+            topStart: 'buttons'
+            },
+            buttons: [ 
+            {
+            extend: 'csv',
+            text: 'Last ned data i csv-format',
+            filename: corpusName  
+            },
+            {
+            extend: 'excel',
+            text: 'Last ned data i excel-format',
+            filename: corpusName 
+            }
+            ]
+            });
+    </script>
+
+{% endblock table %}
