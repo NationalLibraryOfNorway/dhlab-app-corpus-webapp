@@ -15,9 +15,9 @@ def create_app() -> Flask:
     def make_corpus() -> str:
         form_data = extract_form_data(request.form)
 
-        corpus = create_corpus(form_data)
+        corpus, doctype = create_corpus(form_data)
 
-        df_from_corpus = process_corpus_data(corpus)
+        df_from_corpus = process_corpus_data(corpus, doctype)
 
         return render_template('table.html', 
                                corpus_name_=form_data['corpus_name'], 
@@ -43,8 +43,11 @@ def extract_form_data(form) -> dict:
     }
 
 #Helper function to create a corpus-object
-def create_corpus(form_data: dict) -> dh.Corpus:
-    return dh.Corpus(
+def create_corpus(form_data: dict) -> tuple:
+
+    doctype = form_data['doc_type_selection']
+
+    dh_corpus_object = dh.Corpus(
         doctype=form_data['doc_type_selection'],
         author=form_data['author'],
         freetext=None,
@@ -61,10 +64,27 @@ def create_corpus(form_data: dict) -> dh.Corpus:
         allow_duplicates=False
     )
 
+    return dh_corpus_object, doctype
+
 #Helper function to process the corpus data into a cleaned-up DataFrame
-def process_corpus_data(corpus: dh.Corpus) -> pd.DataFrame:
+def process_corpus_data(corpus: dh.Corpus, doctype: str) -> pd.DataFrame:
     df = corpus.frame
-    df = df[['dhlabid', 'urn', 'authors', 'title', 'city', 'timestamp', 'year', 'publisher', 'ddc', 'subjects', 'langs']]
+
+    if doctype == "digibok":
+        df = df[['dhlabid', 'urn', 'authors', 'title', 'city', 'timestamp', 'year', 'publisher', 'ddc', 'subjects', 'langs']]
+    elif doctype == "digavis":
+        df = df[['dhlabid', 'urn', 'authors', 'title', 'city', 'timestamp', 'year']]
+    elif doctype == "digitidsskrift":
+        df = df[['dhlabid', 'urn', 'title', 'city', 'timestamp', 'year', 'publisher', 'ddc', 'subjects', 'langs']]
+    elif doctype =="digistorting":
+        df = df[['dhlabid', 'urn', 'year']]
+    elif doctype == "digimanus": 
+        df = df[['dhlabid', 'urn', 'authors', 'title', 'timestamp', 'year']]
+    elif doctype == "kudos":
+        df = df[['dhlabid', 'urn', 'authors', 'title', 'city', 'timestamp', 'year', 'publisher', 'langs']]
+    elif doctype == "nettavis":
+        df = df[['dhlabid', 'urn', 'authors', 'title', 'city', 'timestamp', 'year', 'publisher', 'langs']]
+
     return df
 
 app = create_app()
