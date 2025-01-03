@@ -8,8 +8,11 @@
 </div>
 </div>
     <script>
-    	alert("Her er jeg!");
         var corpusName = "{{ corpus_name_ }}";  //Render the Flask variable into JavaScript
+        //var json_table = "{{ json_table | safe }}"
+        const jsonString = JSON.stringify({{ json_table | safe }});
+        localStorage.setItem('datatableContent', jsonString);
+        localStorage.setItem('corpusName', corpusName);
         new DataTable('#results_table', {
             layout: {
             topStart: 'buttons'
@@ -28,8 +31,6 @@
             ]
             });
 
-    //Store the HTML content in sessionStorage
-    sessionStorage.setItem('datatableContent', results_table);
     </script>
 
 {% endblock table %}

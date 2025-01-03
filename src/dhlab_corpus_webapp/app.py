@@ -5,12 +5,10 @@ import pandas as pd
 def create_app() -> Flask:
     app = Flask(__name__)
 
-    #Route for the homepage (index)
     @app.route("/")
     def index() -> str:
         return render_template("index_base.html")
 
-    #Route to handle form submission and generate corpus
     @app.route('/submit-form', methods=['POST'])
     def make_corpus() -> str:
         form_data = extract_form_data(request.form)
@@ -19,13 +17,16 @@ def create_app() -> Flask:
 
         df_from_corpus = process_corpus_data(corpus, doctype)
 
-        return render_template('table.html', 
+        json_table = df_from_corpus.to_json(orient='records')
+
+
+        return render_template('table.html',
+                               json_table = json_table, 
                                corpus_name_=form_data['corpus_name'], 
                                res_table=df_from_corpus.to_html(table_id='results_table', border=0))
 
     return app
 
-#Helper function to extract and organize form data
 def extract_form_data(form) -> dict:
     return {
         'doc_type_selection': form.get('doc_type_selection'),
@@ -42,7 +43,6 @@ def extract_form_data(form) -> dict:
         'corpus_name': form.get('corpus_name')
     }
 
-#Helper function to create a corpus-object
 def create_corpus(form_data: dict) -> tuple:
 
     doctype = form_data['doc_type_selection']
@@ -66,26 +66,19 @@ def create_corpus(form_data: dict) -> tuple:
 
     return dh_corpus_object, doctype
 
-#Helper function to process the corpus data into a cleaned-up DataFrame
+CORPUS_COLUMNS: dict[str, list[str]] = {
+"digibok": ['dhlabid', 'urn', 'authors', 'title', 'city', 'timestamp', 'year', 'publisher', 'ddc', 'subjects', 'langs'],
+"digavis": ['dhlabid', 'urn', 'authors', 'title', 'city', 'timestamp', 'year'],
+"digitidsskrift": ['dhlabid', 'urn', 'title', 'city', 'timestamp', 'year', 'publisher', 'ddc', 'subjects', 'langs'],
+"digistorting": ['dhlabid', 'urn', 'year'],
+"digimanus": ['dhlabid', 'urn', 'authors', 'title', 'timestamp', 'year'],
+"kudos": ['dhlabid', 'urn', 'authors', 'title', 'timestamp', 'year', 'publisher', 'langs'],
+"nettavis": ['dhlabid', 'urn', 'title', 'city', 'timestamp', 'year', 'publisher', 'langs']
+}
+
 def process_corpus_data(corpus: dh.Corpus, doctype: str) -> pd.DataFrame:
-    df = corpus.frame
 
-    if doctype == "digibok":
-        df = df[['dhlabid', 'urn', 'authors', 'title', 'city', 'timestamp', 'year', 'publisher', 'ddc', 'subjects', 'langs']]
-    elif doctype == "digavis":
-        df = df[['dhlabid', 'urn', 'authors', 'title', 'city', 'timestamp', 'year']]
-    elif doctype == "digitidsskrift":
-        df = df[['dhlabid', 'urn', 'title', 'city', 'timestamp', 'year', 'publisher', 'ddc', 'subjects', 'langs']]
-    elif doctype =="digistorting":
-        df = df[['dhlabid', 'urn', 'year']]
-    elif doctype == "digimanus": 
-        df = df[['dhlabid', 'urn', 'authors', 'title', 'timestamp', 'year']]
-    elif doctype == "kudos":
-        df = df[['dhlabid', 'urn', 'authors', 'title', 'city', 'timestamp', 'year', 'publisher', 'langs']]
-    elif doctype == "nettavis":
-        df = df[['dhlabid', 'urn', 'authors', 'title', 'city', 'timestamp', 'year', 'publisher', 'langs']]
-
-    return df
+    return corpus.frame[CORPUS_COLUMNS[doctype]]
 
 app = create_app()
 
