@@ -7,7 +7,7 @@
             <h1>Korpus</h1>
 
             <p>Med denne appen kan man lage et <a href="https://www.nb.no/dh-lab/">DH-LAB</a>-korpus av tekster fra <a href="https://www.nb.no/dh-lab/">Nasjonalbibliotekets</a> samling.</p>
-            
+
             <details>
                 <summary>Hvordan fungerer korpusappen?</summary>
                 <p>Et DHLAB-korpus gjør at man kan gjøre kvantitative analyser av tekstsamlinger som inkluderer opphavsrettsbeskyttet materiale. I stedet for å laste ned tekstene, får man en kode for hver tekst. Denne kan så lastes opp i andre DHLAB-apper for å gjøre analyser på den teksten.</p>
@@ -19,17 +19,17 @@
                 <div id="form-feedback"></div>
             </div>
 
-            <form id="search-form" action="/submit-form" method="post">
+            <form id="search-form" hx-post="/submit-form" hx-target="#corpus-table" hx-swap="innerHTML" hx-trigger="submit" hx-indicator="#loading">
 
             <div class="search-container">
-                
+
                 <div id="search-type-selection">
                     <label for="search-type" class="search-type-label">Dokumenttype:
                         <span class="help-tooltip">
                             <ion-icon name="help-circle-outline" class="help-icon"></ion-icon>
                             <span class="help-text">Følger Nasjonalbibliotekets digitale dokumenttyper.</span>
                         </span>
-                    </label> 
+                    </label>
                     <select name="doc_type_selection" id="doc_type_selection_">
                         <option value="digibok">Digibok</option>
                         <option value="digavis">Digavis</option>
@@ -71,7 +71,7 @@
                 </label>
                 <input type="text" id="title" name="title" placeholder="Et dukkehjem" />
             </div>
-        
+
             <div id="search-type-words-phrases">
                 <label for="name">Ord eller fraser i teksten:
                     <span class="help-tooltip">
@@ -81,7 +81,7 @@
                 </label>
                 <input type="text" id="words_or_phrases" name="words_or_phrases" placeholder="Det vidunderlige" />
             </div>
-            
+
             <div class="search-type-selection">
                     <label for="dewey">Dewey desimaltall:
                         <span class="help-tooltip">
@@ -98,21 +98,21 @@
                 </div>
 
                 <div id="search-type-to-year">
-                    <label for="to_year">Til år:</label> 
+                    <label for="to_year">Til år:</label>
                     <input id="to_year" type="number" name="to_year" placeholder="1880" />
                 </div>
             </div>
-        
-        </div> 
+
+        </div>
 
         <h2>Lag korpuset og last ned metadata</h2>
 
         <div class="make-corpus">
             <div id="search-type-num-docs">
-                <label for="num_docs">Maks antall, inntil 20 000:</label> 
+                <label for="num_docs">Maks antall, inntil 20 000:</label>
                 <input id="num_docs" type="number" name="num_docs" min="1" max="20000" value="2000" />
             </div>
- 
+
             <div id="search-type-extraction">
                 <label for="search-type" class="search-type-label">Metode for uthenting:
                     <span class="help-tooltip">
@@ -128,29 +128,40 @@
             </div>
 
             <div id="search-type-download">
-                <label for="corpus_name">Filnavn for nedlastning:</label> 
+                <label for="corpus_name">Filnavn for nedlastning:</label>
                 <input id="corpus_name" type="text" value="korpus" name="corpus_name" />
             </div>
 
         <div class="submit-button">
             <div id="button-1">
-                <button type="submit">Trykk her når korpusdefinisjonen er klar</button>
+                <input
+                    type="button"
+                    name="update-search"
+                    value="Trykk her når korpusdefinisjonen er klar"
+                    hx-on:click="htmx.trigger('#search-form', 'submit');"
+                >
             </div>
         </div>
     </div> <!--End class make-corpus-->
-    
+
     </form>
 
     <script src="static/disable_enable_fields.js"></script>
     <!--Dropdown menu script-->
     <script src="static/MultiSelect.js"></script>
 
-    
+    <div id="loading">
+        <div>Bygger korpus</div>
+        <span class="loader"></span>
+     </div>
     <!---Table for displaying results-->
+    <div
+        class="datatable-container"
+        id="corpus-table"
+        hx-on::after-swap="initializeDataTable(document.getElementById('corpus_name').value)"
+    >
 
-    {% block table %}
-
-    {% endblock table %}
+    </div>
 
     </main>
     {% endblock content %}
