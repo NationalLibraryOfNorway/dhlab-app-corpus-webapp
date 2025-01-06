@@ -13,9 +13,8 @@ a {
 body {
     max-width: var(--body-width);
     font-family: var(--nb-font-family)!important;
-    transform: scale(0.8);  /* Scale the page to 90% of its size */
     transform-origin: top center;  /* Ensure it scales from the top-left corner*/
-    width: 100%;  /* Ensure it still takes up the full width */
+    width: 80%;  /* Ensure it still takes up the full width */
     height: 100%;  /* Make sure it occupies the full height of the screen */
 }
 .banner{
@@ -300,7 +299,6 @@ input, select {
     gap: var(--small-margin);
     margin-bottom: var(--small-margin);
     margin-top: var(--small-margin);
-    width: 100%;
 }
 
 .submit-button {
@@ -315,7 +313,7 @@ input, select {
 div.make-corpus {
     border: 2px solid #ccc;
     border-radius: 8px;
-    padding: 20px;
+    padding: 10px;
     margin-top: 15px;
 
 }
