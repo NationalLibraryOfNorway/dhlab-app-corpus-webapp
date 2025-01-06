@@ -7,7 +7,11 @@ def create_app() -> Flask:
 
     @app.route("/")
     def index() -> str:
-        return render_template("index_base.html")
+        return render_template(
+            "index_base.html",
+            app_title="Korpusbygger",
+            app_name="Korpusbygger",
+        )
 
     @app.route('/submit-form', methods=['POST'])
     def make_corpus() -> str:
@@ -19,11 +23,12 @@ def create_app() -> Flask:
 
         json_table = df_from_corpus.to_json(orient='records')
 
-
-        return render_template('table.html',
-                               json_table = json_table, 
-                               corpus_name_=form_data['corpus_name'], 
-                               res_table=df_from_corpus.to_html(table_id='results_table', border=0))
+        return render_template(
+            "table.html",
+            json_table=json_table,
+            corpus_name_=form_data["corpus_name"],
+            res_table=df_from_corpus.to_html(table_id="results_table", border=0),
+        )
 
     return app
 

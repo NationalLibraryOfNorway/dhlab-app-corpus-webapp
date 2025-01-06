@@ -2,7 +2,7 @@
     --small-margin: 10px;
     --links: var(--nb-color);
     --column-width: 200px;
-    --body-width: calc(var(--column-width)*10 + var(--small-margin)*4); 
+    --body-width: calc(var(--column-width)*10 + var(--small-margin)*4);
     --sidebar-width: calc(var(--column-width) + 2*var(--small-margin));
 }
 a {
@@ -11,7 +11,7 @@ a {
 
 
 body {
-    max-width: var(--body-width); 
+    max-width: var(--body-width);
     font-family: var(--nb-font-family)!important;
     transform: scale(0.8);  /* Scale the page to 90% of its size */
     transform-origin: top center;  /* Ensure it scales from the top-left corner*/
@@ -58,7 +58,7 @@ input, select {
 }
 
 
-#loading-text, #loading-images {
+#loading{
     align-items: center; /* Center vertically */
     background-color: color-mix(
         in oklab,
@@ -81,14 +81,14 @@ input, select {
 }
 
 
-#loading-text div, #loading-images div {
+#loading div{
     display: block;
     text-align: center;
     width: 100%;
 }
 
 
-#loading-text.htmx-request, #loading-images.htmx-request{
+#loading.htmx-request{
     display: flex;
     opacity: 1;
 }
@@ -184,7 +184,7 @@ input, select {
 }
 
 
-.info_card p {    
+.info_card p {
     margin-bottom: 5px;
     margin-top: 5px;
 }
@@ -382,7 +382,7 @@ div.make-corpus {
     left: 0;
     height: 100%;
     background-color: var(--background-body);
-    border-right: solid 1px var(--border);  
+    border-right: solid 1px var(--border);
     transition: width 0.5s;
     z-index: 2;
 }
@@ -445,22 +445,22 @@ fieldset {
 }
 
 .help-text {
-    display: none;  
-    position: absolute; 
-    bottom: 90%; 
+    display: none;
+    position: absolute;
+    bottom: 90%;
     left:300%;
-    transform: translateX(-50%); 
+    transform: translateX(-50%);
     background-color:  #f9f9f9;
-    color: black; 
+    color: black;
     padding: 10px 15px;
     border-radius: 5px;
     font-size: 16px;
-    white-space: nowrap; 
-    z-index: 10; 
+    white-space: nowrap;
+    z-index: 10;
 }
 
 .help-icon:hover + .help-text{
-    display: block; 
+    display: block;
 }
 
 .help-text {
@@ -491,9 +491,9 @@ fieldset {
 }
 
 .dropdown-arrow {
-    margin-left: 93px; 
-    font-size: 18px;   
-    transition: transform 0.3s ease;  
+    margin-left: 93px;
+    font-size: 18px;
+    transition: transform 0.3s ease;
 }
 
 .dropdown-content {
@@ -502,8 +502,8 @@ fieldset {
     position: absolute;
     background: var(--background) var(--select-arrow) calc(100% - 12px) 50% / 12px no-repeat;
     min-width: 200px;
-    max-height: 150px; 
-    overflow-y: auto;  
+    max-height: 150px;
+    overflow-y: auto;
     box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
     z-index: 1;
     padding: 10px;
@@ -565,26 +565,3 @@ input[type="checkbox"] {
     margin-top: 20px;
     font-weight: bold;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
