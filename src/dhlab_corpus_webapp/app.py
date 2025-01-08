@@ -1,77 +1,46 @@
 from flask import Flask, render_template, request
 import dhlab as dh
-import pandas as pd
+from dataclasses import dataclass, asdict
+import urllib.parse
+import html
+from typing import Self
 
 
-def create_app() -> Flask:
-    app = Flask(__name__)
+@dataclass(frozen=True)
+class CorpusMetadata:
+    doc_type_selection: str | None = None
+    language: str | None = None
+    author: str | None = None
+    title: str | None = None
+    words_or_phrases: str | None = None
+    key_words: str | None = None
+    dewey: str | None = None
+    from_year: str | None = None
+    to_year: str | None = None
+    search_type: str | None = None
+    num_docs: str | None = None
+    corpus_name: str | None = None
 
-    @app.route("/")
-    def index() -> str:
-        return render_template(
-            "index_base.html",
-            app_title="Korpusbygger",
-            app_name="Korpusbygger",
+    @classmethod
+    def from_dict(cls, data: dict[str, str]) -> Self:
+        return cls(
+            doc_type_selection=data.get("doc_type_selection"),
+            language=data.get("language"),
+            author=data.get("author"),
+            title=data.get("title"),
+            words_or_phrases=data.get("words_or_phrases"),
+            key_words=data.get("key_words"),
+            dewey=data.get("dewey"),
+            from_year=data.get("from_year"),
+            to_year=data.get("to_year"),
+            search_type=data.get("search_type"),
+            num_docs=data.get("num_docs"),
+            corpus_name=data.get("corpus_name")
         )
 
-    @app.route("/submit-form", methods=["POST"])
-    def make_corpus() -> str:
-        form_data = extract_form_data(request.form)
-
-        corpus, doctype = create_corpus(form_data)
-
-        df_from_corpus = process_corpus_data(corpus, doctype)
-
-        json_table = df_from_corpus.to_json(orient="records")
-
-        return render_template(
-            "table.html",
-            json_table=json_table,
-            corpus_name_=form_data["corpus_name"],
-            res_table=df_from_corpus.to_html(table_id="results_table", border=0),
-        )
-
-    return app
-
-
-def extract_form_data(form) -> dict:
-    return {
-        "doc_type_selection": form.get("doc_type_selection"),
-        "language": form.get("languages"),
-        "author": form.get("author"),
-        "title": form.get("title"),
-        "words_or_phrases": form.get("words_or_phrases"),
-        "key_words": form.get("key_words"),
-        "dewey": form.get("dewey"),
-        "from_year": form.get("from_year"),
-        "to_year": form.get("to_year"),
-        "search_type": form.get("search_type"),
-        "num_docs": form.get("num_docs"),
-        "corpus_name": form.get("corpus_name"),
-    }
-
-
-def create_corpus(form_data: dict) -> tuple:
-    doctype = form_data["doc_type_selection"]
-
-    dh_corpus_object = dh.Corpus(
-        doctype=form_data["doc_type_selection"],
-        author=form_data["author"],
-        freetext=None,
-        fulltext=form_data["words_or_phrases"],
-        from_year=form_data["from_year"],
-        to_year=form_data["to_year"],
-        from_timestamp=None,
-        title=form_data["title"],
-        ddk=form_data["dewey"],
-        subject=form_data["key_words"],
-        lang=form_data["language"],
-        limit=form_data["num_docs"],
-        order_by=form_data["search_type"],
-        allow_duplicates=False,
-    )
-
-    return dh_corpus_object, doctype
+    def urlencode(self) -> str:
+        data = {k: v for k, v in asdict(self).items() if v is not None}
+        return html.escape(urllib.parse.urlencode(data))
 
 
 CORPUS_COLUMNS: dict[str, list[str]] = {
@@ -126,8 +95,56 @@ CORPUS_COLUMNS: dict[str, list[str]] = {
 }
 
 
-def process_corpus_data(corpus: dh.Corpus, doctype: str) -> pd.DataFrame:
-    return corpus.frame[CORPUS_COLUMNS[doctype]]
+def create_corpus(metadata: CorpusMetadata) -> tuple[dh.Corpus, str]:
+    dh_corpus_object = dh.Corpus(
+        doctype=metadata.doc_type_selection,
+        author=metadata.author,
+        freetext=None,
+        fulltext=metadata.words_or_phrases,
+        from_year=metadata.from_year,
+        to_year=metadata.to_year,
+        from_timestamp=None,
+        title=metadata.title,
+        ddk=metadata.dewey,
+        subject=metadata.key_words,
+        lang=metadata.language,
+        limit=metadata.num_docs,
+        order_by=metadata.search_type,
+        allow_duplicates=False,
+    )
+    
+    return dh_corpus_object, metadata.doc_type_selection
+
+
+def create_app() -> Flask:
+    app = Flask(__name__)
+
+    @app.route("/")
+    def index() -> str:
+        return render_template(
+            "index_base.html",
+            app_title="Korpusbygger",
+            app_name="Korpusbygger",
+        )
+
+    @app.route("/submit-form", methods=["POST"])
+    def make_corpus() -> str:
+        corpus_metadata = CorpusMetadata.from_dict(request.form)
+        
+        corpus, doctype = create_corpus(corpus_metadata)
+        
+        df_from_corpus = corpus.frame[CORPUS_COLUMNS[doctype]]
+        
+        json_table = df_from_corpus.to_json(orient="records")
+        
+        return render_template(
+            "table.html",
+            json_table=json_table,
+            corpus_name_=corpus_metadata.corpus_name,
+            res_table=df_from_corpus.to_html(table_id="results_table", border=0),
+        )
+
+    return app
 
 
 app = create_app()

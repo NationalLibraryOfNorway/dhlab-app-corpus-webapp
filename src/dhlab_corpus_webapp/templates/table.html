@@ -3,8 +3,7 @@
 </div>
 
 <script>
-        var corpusName = "{{ corpus_name_ }}";  //Render the Flask variable into JavaScript
-       
+        var corpusName = "{{ corpus_name_ }}";  
         const jsonString = JSON.stringify({{ json_table | safe }});
         localStorage.setItem('datatableContent', jsonString);
         localStorage.setItem('corpusName', corpusName);
