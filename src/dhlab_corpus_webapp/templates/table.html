@@ -1,3 +1,11 @@
 <div class="scrollable-table-container">
         {{res_table | safe}}
 </div>
+
+<script>
+        var corpusName = "{{ corpus_name_ }}";  //Render the Flask variable into JavaScript
+       
+        const jsonString = JSON.stringify({{ json_table | safe }});
+        localStorage.setItem('datatableContent', jsonString);
+        localStorage.setItem('corpusName', corpusName);
+</script>

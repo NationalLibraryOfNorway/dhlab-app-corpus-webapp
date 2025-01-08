@@ -109,8 +109,8 @@
 
         <div class="make-corpus">
             <div id="search-type-num-docs">
-                <label for="num_docs">Maks antall, inntil 20 000:</label>
-                <input id="num_docs" type="number" name="num_docs" min="1" max="20000" value="2000" />
+                <label for="num_docs">Maks antall, inntil 100 000:</label>
+                <input id="num_docs" type="number" name="num_docs" min="1" max="100000" value="2000" />
             </div>
 
             <div id="search-type-extraction">
@@ -160,8 +160,9 @@
         id="corpus-table"
         hx-on::after-swap="initializeDataTable(document.getElementById('corpus_name').value)"
     >
-
     </div>
+    
+    <!--<script> localStorage.setItem('datatable', document.getElementById('corpus-table').innerHTML);</script>-->
 
     </main>
     {% endblock content %}
