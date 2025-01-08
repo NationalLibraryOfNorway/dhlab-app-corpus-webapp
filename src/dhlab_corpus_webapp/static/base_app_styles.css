@@ -1,0 +1,105 @@
+:root {
+    --small-margin: 10px;
+    --links: var(--nb-color);
+    --column-width: 200px;
+    --body-width: calc(var(--column-width)*6 + var(--small-margin)*4);
+    --sidebar-width: calc(var(--column-width) + 2*var(--small-margin))
+}
+a {
+    font-weight: var(--font-weight-medium);
+}
+body {
+    max-width: var(--body-width);  
+    font-family: var(--nb-font-family);
+}
+/* Begin banner styles */
+.banner{
+    color: var(--nb-color);
+    display: flex;
+    border-bottom: 1px solid var(--background-alt);
+}
+.banner a:hover {
+    text-decoration: none;
+}
+.logo {
+    font-family: var(--nb-font-family-secondary);
+    margin-left: var(--small-margin);
+}
+.separator {
+    margin-right: var(--small-margin);
+    margin-left: var(--small-margin);
+}
+.app-name {
+    color: var(--nb-secondary-color)
+}
+.icon-button{
+    fill: var(--nb-color);
+}
+/* End banner styles */
+
+h1 {
+    font-family: var(--nb-font-family-secondary);
+    color: var(--nb-secondary-color);
+}
+input, select {
+    font-family: var(--nb-font-family-secondary);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#loading-text{
+    align-items: center; /* Center vertically */
+    background-color: color-mix(
+        in oklab,
+        var(--background-alt),
+        transparent 20%
+      );
+    display: none;
+    flex-direction: column;
+    font-size: 16px;
+    font-weight: bold;
+    height: 100%; /* Full height */
+    justify-content: center; /* Center horizontally */
+    left: 0; /* Align it to the left */
+    opacity: 0;
+    position: fixed; /* Position it relative to the viewport */
+    top: 0; /* Align it to the top */
+    transition: opacity 500ms ease-in;
+    width: 100%; /* Full width */
+    z-index: 1000; /* Make sure it's on top of other elements */
+}
+
+
+#loading-text div {
+    display: block;
+    text-align: center;
+    width: 100%;
+}
+
+
+#loading-text.htmx-request{
+    display: flex;
+    opacity: 1;
+}
+
+.loader {
+    animation: rotation 1s linear infinite;
+    border: 5px solid var(--text-main);
+    border-bottom-color: transparent;
+    border-radius: 50%;
+    box-sizing: border-box;
+    display: inline-block;
+    height: 48px;
+    margin-top: var(--small-margin);
+    width: 48px;
+}
+
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}

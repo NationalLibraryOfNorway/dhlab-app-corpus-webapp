@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main>
+    <header>
+    {% include 'banner.html' with context %}
+            <h1>Korpus</h1>
+
+            <p>Med denne appen kan man lage et <a href="https://www.nb.no/dh-lab/">DH-LAB</a>-korpus av tekster fra <a href="https://www.nb.no/dh-lab/">Nasjonalbibliotekets</a> samling.</p>
+
+            <details>
+                <summary>Hvordan fungerer korpusappen?</summary>
+                <p>Et DHLAB-korpus gjør at man kan gjøre kvantitative analyser av tekstsamlinger som inkluderer opphavsrettsbeskyttet materiale. I stedet for å laste ned tekstene, får man en kode for hver tekst. Denne kan så lastes opp i andre DHLAB-apper for å gjøre analyser på den teksten.</p>
+            <p>DHLAB tilbyr følgende ressurstyper: <strong>Digibok:</strong> Bøker fra Nasjonalbiblioteket <strong>Digavis:</strong> Aviser fra Nasjonalbiblioteket <strong> Digitidsskrift:</strong> Tidsskrift fra Nasjonalbiblioteket <strong>Digistorting:</strong> Stortingsdokumenter i NBs samling Digimanus: Brev og manuskripter <strong> Kudos:</strong> <a href= "https://kudos.dfo.no/"> Kunnskapsdokumenter i offentlig sektor</a>  <strong>Nettavis:</strong> Tekster fra nettaviser</p>
+            </details>
+    </header>
+
+            <div class="form-feedback">
+                <div id="form-feedback"></div>
+            </div>
+
+            <form id="search-form" hx-post="/submit-form" hx-target="#corpus-table" hx-swap="innerHTML" hx-trigger="submit" hx-indicator="#loading">
+
+            <div class="search-container">
+
+                <div id="search-type-selection">
+                    <label for="search-type" class="search-type-label">Dokumenttype:
+                        <span class="help-tooltip">
+                            <ion-icon name="help-circle-outline" class="help-icon"></ion-icon>
+                            <span class="help-text">Følger Nasjonalbibliotekets digitale dokumenttyper.</span>
+                        </span>
+                    </label>
+                    <select name="doc_type_selection" id="doc_type_selection_">
+                        <option value="digibok">Digibok</option>
+                        <option value="digavis">Digavis</option>
+                        <option value="digitidsskrift">Digitidskrift</option>
+                        <option value="digistorting">Digistorting</option>
+                        <option value="digimanus">Digimanus</option>
+                        <option value="kudos">Kudos</option>
+                        <option value="nettavis">Nettavis</option>
+                    </select>
+                </div>
+
+            <div id="search-type-language">
+                <label for="search-type-language" >
+                    Språk:
+                    <span class="help-tooltip">
+                        <ion-icon name="help-circle-outline" class="help-icon"></ion-icon>
+                        <span class="help-text">Velg språk fra listen.</span>
+                    </span>
+                </label>
+                {% include 'langs.html' %}
+            </div>
+
+            <div id="search-type-author">
+                <label for="name">Forfatter:
+                    <span class="help-tooltip">
+                        <ion-icon name="help-circle-outline" class="help-icon"></ion-icon>
+                        <span class="help-text">Feltet blir kun tatt hensyn til for digibok.</span>
+                    </span>
+                </label>
+                <input type="text" id="author" name="author" placeholder="Henrik Ibsen" />
+            </div>
+
+            <div id="search-type-title">
+                <label for="name">Tittel:
+                    <span class="help-tooltip">
+                        <ion-icon name="help-circle-outline" class="help-icon"></ion-icon>
+                        <span class="help-text">Søk etter titler. For aviser vil tittel matche avisnavnet.</span>
+                    </span>
+                </label>
+                <input type="text" id="title" name="title" placeholder="Et dukkehjem" />
+            </div>
+
+            <div id="search-type-words-phrases">
+                <label for="name">Ord eller fraser i teksten:
+                    <span class="help-tooltip">
+                        <ion-icon name="help-circle-outline" class="help-icon"></ion-icon>
+                        <span class="help-text">Søketreff er uavhengig av stor og liten bokstav. <br> Du kan søke trunkert med "." <br> For eksempel vil <i>demokrat</i> returnere tekster som inneholder demokrati og demokratisk blant andre treff.</span>
+                    </span>
+                </label>
+                <input type="text" id="words_or_phrases" name="words_or_phrases" placeholder="Det vidunderlige" />
+            </div>
+
+            <div class="search-type-selection">
+                    <label for="dewey">Dewey desimaltall:
+                        <span class="help-tooltip">
+                            <ion-icon name="help-circle-outline" class="help-icon"></ion-icon>
+                            <span class="help-text">Input matcher et deweynummer. <br> For å matche en hel serie, føy til *. <br> Bruk OR for å kombinere: 364* OR 916* .</span>
+                        </span>
+                    </label>
+                    <input id="dewey" type="number" name="dewey" />
+            </div>
+
+                <div id="search-type-from-year">
+                    <label for="from_year">Fra år:</label>
+                    <input id="from_year" type="number" name="from_year" placeholder="1879" />
+                </div>
+
+                <div id="search-type-to-year">
+                    <label for="to_year">Til år:</label>
+                    <input id="to_year" type="number" name="to_year" placeholder="1880" />
+                </div>
+            </div>
+
+        </div>
+
+        <h2>Lag korpuset og last ned metadata</h2>
+
+        <div class="make-corpus">
+            <div id="search-type-num-docs">
+                <label for="num_docs">Maks antall, inntil 100 000:</label>
+                <input id="num_docs" type="number" name="num_docs" min="1" max="100000" value="2000" />
+            </div>
+
+            <div id="search-type-extraction">
+                <label for="search-type" class="search-type-label">Metode for uthenting:
+                    <span class="help-tooltip">
+                        <ion-icon name="help-circle-outline" class="help-icon"></ion-icon>
+                        <span class="help-text">Metode 'first' er raskest, og velger dokument etter hvert som de blir funnet. <br> 'rank' gir en rask ordning på dokumenter om korpuset er definert med et fulltekstsøk og sorterer på relevans. <br>'random' samler først inn hele korpuset og gjør deretter et vilkårlig utvalg av tekster derfra.</span>
+                    </span>
+                </label>
+                <select name="type_" hx-get="search_type" hx-target="#search">
+                    <option value="first">first</option>
+                    <option value="rank">rank</option>
+                    <option value="random">random</option>
+                </select>
+            </div>
+
+            <div id="search-type-download">
+                <label for="corpus_name">Filnavn for nedlastning:</label>
+                <input id="corpus_name" type="text" value="korpus" name="corpus_name" />
+            </div>
+
+        <div class="submit-button">
+            <div id="button-1">
+                <input
+                    type="button"
+                    name="update-search"
+                    value="Trykk her når korpusdefinisjonen er klar"
+                    hx-on:click="htmx.trigger('#search-form', 'submit');"
+                >
+            </div>
+        </div>
+    </div> <!--End class make-corpus-->
+
+    </form>
+
+    <script src="static/disable_enable_fields.js"></script>
+    <!--Dropdown menu script-->
+    <script src="static/MultiSelect.js"></script>
+
+    <div id="loading">
+        <div>Bygger korpus</div>
+        <span class="loader"></span>
+     </div>
+    <!---Table for displaying results-->
+    <div
+        class="datatable-container"
+        id="corpus-table"
+        hx-on::after-swap="initializeDataTable(document.getElementById('corpus_name').value)"
+    >
+    </div>
+    
+    <!--<script> localStorage.setItem('datatable', document.getElementById('corpus-table').innerHTML);</script>-->
+
+    </main>
+    {% endblock content %}

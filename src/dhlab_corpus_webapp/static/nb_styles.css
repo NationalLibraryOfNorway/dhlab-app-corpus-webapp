@@ -1,0 +1,45 @@
+:root {
+
+    --nb-blue:rgb(0, 68, 186);
+
+    --nb-medium-grey: rgb(82, 102, 114);
+    --nb-light-transparent-grey:rgba(0, 0, 0, 0.87);
+    
+    --nb-font-family: "DM Sans", arial, sans-serif;
+    --nb-font-family-secondary: "DM Mono", arial, sans-serif;
+    
+    --font-weight-thin:100;
+    --font-weight-light:300;
+    --font-weight-normal:400;
+    --font-weight-medium:500;
+    --font-weight-bold:700;
+    --font-weight-black:900;
+
+    --font-size-xxs: 0.625rem;
+    --font-size-xs: 0.8125rem;
+    --font-size-s: 1rem;
+    --font-size-r: 1.25rem;
+    --font-size-m: 1.5rem;
+    --font-size-l: 2rem;
+    --font-size-xl: 3rem;
+    --font-size-xxl: 3.5rem;
+    --font-size-xxxl: 4rem;
+
+    --app-secondary-background-color: #e1e6eb;
+    --app-secondary-foreground-color: #4c5867;
+}
+@media (prefers-color-scheme: light){
+    :root{
+        --nb-color: var(--nb-blue);
+        --nb-secondary-color: var(--nb-medium-grey);
+        --nb-logo-color: #000;
+    }
+}
+
+@media (prefers-color-scheme: dark){
+    :root {
+        --nb-color: rgb(255, 255, 255);
+        --nb-secondary-color: rgb(255, 255, 255);
+        --nb-logo-color: #fff;
+    }
+}
