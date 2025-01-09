@@ -4,8 +4,9 @@ from dataclasses import dataclass, asdict
 import urllib.parse
 import html
 from typing import Self
-
-
+#from flask_cors import cross_origin
+#from pydantic_settings import BaseSettings
+            
 @dataclass(frozen=True)
 class CorpusMetadata:
     doc_type_selection: str | None = None

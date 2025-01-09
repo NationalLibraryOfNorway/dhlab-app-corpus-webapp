@@ -1,0 +1,52 @@
+steps: 
+# Build the container image 
+- name: 'gcr.io/cloud-builders/docker' 
+  args: ['build', '-f', 'Dockerfile', '-t', 'gcr.io/jupyterhub-379311/corpus-webapp:latest', '.'] 
+# Push the container image to Container Registry 
+- name: 'gcr.io/cloud-builders/docker' 
+  args: ['push', 'gcr.io/jupyterhub-379311/corpus-webapp:latest'] 
+# Deploy container image to Cloud Run 
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args: 
+   - 'run' 
+   - 'deploy' 
+   - 'corpus-webapp' 
+   - '--image' 
+   - 'gcr.io/jupyterhub-379311/corpus-webapp:latest' 
+   - '--region' 
+   - 'europe-north1' 
+   - '--allow-unauthenticated' 
+   - '--cpu' 
+   - '1000m'  # Modifiser denne opp eller ned ved behov 
+   - '--memory' 
+   - '1Gi'  # Modifiser denne opp eller ned ved behov 
+   - '--port'
+   - '5000'
+   - '--command'
+   - 'flask'
+   - '--args'
+   - 'run app.py --server.port 5000 --browser.gatherUsageStats=False --server.baseUrlPath /corpus-webapp'
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args: 
+   - 'run' 
+   - 'deploy' 
+   - 'privatarkiv-search-signatur' 
+   - '--image' 
+   - 'gcr.io/jupyterhub-379311/corpus-webapp:latest' 
+   - '--region' 
+   - 'europe-north1' 
+   - '--allow-unauthenticated' 
+   - '--cpu' 
+   - '1000m'  # Modifiser denne opp eller ned ved behov 
+   - '--memory' 
+   - '1Gi'  # Modifiser denne opp eller ned ved behov 
+   - '--port'
+   - '5000'
+   - '--command'
+   - 'flask'
+   - '--args'
+   - 'run app.py --server.port 5000 --browser.gatherUsageStats=False --server.baseUrlPath /privatarkiv-search-signatur'
+images:
+- 'gcr.io/jupyterhub-379311/corpus-webapp:latest' 
