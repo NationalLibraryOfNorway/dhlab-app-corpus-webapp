@@ -1,6 +1,9 @@
+from dataclasses import dataclass
+from functools import lru_cache
+from typing import Self
+
+import dhlab as dh  # type: ignore
 from flask import Flask, render_template, request
-import dhlab as dh
-import pandas as pd
 
 
 def create_app() -> Flask:
@@ -16,62 +19,75 @@ def create_app() -> Flask:
 
     @app.route("/submit-form", methods=["POST"])
     def make_corpus() -> str:
-        form_data = extract_form_data(request.form)
+        corpus_metadata = CorpusMetadata.from_dict(request.form)
 
-        corpus, doctype = create_corpus(form_data)
+        corpus = create_corpus(corpus_metadata)
+        df_from_corpus = corpus.frame[CORPUS_COLUMNS[corpus_metadata.document_type]]
 
-        df_from_corpus = process_corpus_data(corpus, doctype)
-
-        json_table = df_from_corpus.to_json(orient="records")
-
+        json_table = df_from_corpus.to_json(orient="records")  # type: ignore
         return render_template(
             "table.html",
             json_table=json_table,
-            corpus_name_=form_data["corpus_name"],
-            res_table=df_from_corpus.to_html(table_id="results_table", border=0),
+            corpus_name_=corpus_metadata.corpus_name,
+            res_table=df_from_corpus.to_html(table_id="results_table", border=0),  # type: ignore
         )
 
     return app
 
 
-def extract_form_data(form) -> dict:
-    return {
-        "doc_type_selection": form.get("doc_type_selection"),
-        "language": form.get("languages"),
-        "author": form.get("author"),
-        "title": form.get("title"),
-        "words_or_phrases": form.get("words_or_phrases"),
-        "key_words": form.get("key_words"),
-        "dewey": form.get("dewey"),
-        "from_year": form.get("from_year"),
-        "to_year": form.get("to_year"),
-        "search_type": form.get("search_type"),
-        "num_docs": form.get("num_docs"),
-        "corpus_name": form.get("corpus_name"),
-    }
+@dataclass(frozen=True)
+class CorpusMetadata:
+    document_type: str
+    language: str | None
+    author: str | None
+    title: str | None
+    words_or_phrases: str | None
+    key_words: str | None
+    dewey: str | None
+    from_year: str | None
+    to_year: str | None
+    search_type: str
+    num_docs: int
+    corpus_name: str
+
+    @classmethod
+    def from_dict(cls, data: dict[str, str]) -> Self:
+        return cls(
+            document_type=data.get("doc_type_selection"),
+            language=data.get("language"),
+            author=data.get("author"),
+            title=data.get("title"),
+            words_or_phrases=data.get("words_or_phrases"),
+            key_words=data.get("key_words"),
+            dewey=data.get("dewey"),
+            from_year=data.get("from_year"),
+            to_year=data.get("to_year"),
+            search_type=data.get("search_type", "random"),
+            num_docs=int(data.get("num_docs", 2000)),
+            corpus_name=data.get("corpus_name"),
+        )
 
 
-def create_corpus(form_data: dict) -> tuple:
-    doctype = form_data["doc_type_selection"]
-
+@lru_cache
+def create_corpus(corpus_metadata: CorpusMetadata) -> dh.Corpus:
     dh_corpus_object = dh.Corpus(
-        doctype=form_data["doc_type_selection"],
-        author=form_data["author"],
+        doctype=corpus_metadata.document_type,
+        author=corpus_metadata.author,
         freetext=None,
-        fulltext=form_data["words_or_phrases"],
-        from_year=form_data["from_year"],
-        to_year=form_data["to_year"],
+        fulltext=corpus_metadata.words_or_phrases,
+        from_year=corpus_metadata.from_year,
+        to_year=corpus_metadata.to_year,
         from_timestamp=None,
-        title=form_data["title"],
-        ddk=form_data["dewey"],
-        subject=form_data["key_words"],
-        lang=form_data["language"],
-        limit=form_data["num_docs"],
-        order_by=form_data["search_type"],
+        title=corpus_metadata.title,
+        ddk=corpus_metadata.dewey,
+        subject=corpus_metadata.key_words,
+        lang=corpus_metadata.language,
+        limit=corpus_metadata.num_docs,
+        order_by=corpus_metadata.search_type,
         allow_duplicates=False,
     )
 
-    return dh_corpus_object, doctype
+    return dh_corpus_object
 
 
 CORPUS_COLUMNS: dict[str, list[str]] = {
@@ -124,10 +140,6 @@ CORPUS_COLUMNS: dict[str, list[str]] = {
         "langs",
     ],
 }
-
-
-def process_corpus_data(corpus: dh.Corpus, doctype: str) -> pd.DataFrame:
-    return corpus.frame[CORPUS_COLUMNS[doctype]]
 
 
 app = create_app()
