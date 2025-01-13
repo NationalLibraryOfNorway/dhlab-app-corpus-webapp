@@ -1,5 +1,6 @@
 function initializeDataTable(filename) {
     new DataTable('#results_table', {
+        "dom": 'Bfrtip',
         layout: {
             topStart: 'buttons'
         },

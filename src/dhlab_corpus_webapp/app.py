@@ -4,10 +4,11 @@ from dataclasses import dataclass, asdict
 import urllib.parse
 import html
 from typing import Self
+from functools import lru_cache
 #from flask_cors import cross_origin
 #from pydantic_settings import BaseSettings
             
-@dataclass(frozen=True)
+@dataclass(frozen=True) #frozen=True so the dataclass becomes immutable and we can cache it later 
 class CorpusMetadata:
     doc_type_selection: str | None = None
     language: str | None = None
@@ -95,7 +96,7 @@ CORPUS_COLUMNS: dict[str, list[str]] = {
     ],
 }
 
-
+@lru_cache
 def create_corpus(metadata: CorpusMetadata) -> tuple[dh.Corpus, str]:
     dh_corpus_object = dh.Corpus(
         doctype=metadata.doc_type_selection,
