@@ -49,4 +49,4 @@ steps:
    - '--args'
    - 'run app.py --server.port 5000 --browser.gatherUsageStats=False --server.baseUrlPath /privatarkiv-search-signatur'
 images:
-- 'gcr.io/jupyterhub-379311/corpus-webapp:latest' 
+- 'gcr.io/$PROJECT_ID/corpus-webapp:latest' 
