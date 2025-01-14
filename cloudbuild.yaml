@@ -1,10 +1,10 @@
 steps: 
 # Build the container image 
 - name: 'gcr.io/cloud-builders/docker' 
-  args: ['build', '-f', 'Dockerfile', '-t', 'gcr.io/jupyterhub-379311/corpus-webapp:latest', '.'] 
+  args: ['build', '-f', 'Dockerfile', '-t', 'gcr.io/$PROJECT_ID/corpus-webapp:latest', '.'] 
 # Push the container image to Container Registry 
 - name: 'gcr.io/cloud-builders/docker' 
-  args: ['push', 'gcr.io/jupyterhub-379311/corpus-webapp:latest'] 
+  args: ['push', 'gcr.io/$PROJECT_ID/corpus-webapp:latest'] 
 # Deploy container image to Cloud Run 
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: gcloud
@@ -13,7 +13,7 @@ steps:
    - 'deploy' 
    - 'corpus-webapp' 
    - '--image' 
-   - 'gcr.io/jupyterhub-379311/corpus-webapp:latest' 
+   - 'gcr.io/$PROJECT_ID/corpus-webapp:latest' 
    - '--region' 
    - 'europe-north1' 
    - '--allow-unauthenticated' 
@@ -33,7 +33,7 @@ steps:
    - 'run' 
    - 'deploy'  
    - '--image' 
-   - 'gcr.io/jupyterhub-379311/corpus-webapp:latest' 
+   - 'gcr.io/$PROJECT_ID/corpus-webapp:latest' 
    - '--region' 
    - 'europe-north1' 
    - '--allow-unauthenticated' 
@@ -48,4 +48,4 @@ steps:
    - '--args'
    - 'run app.py --server.port 5000 --browser.gatherUsageStats=False --server.baseUrlPath'
 images:
-- 'gcr.io/jupyterhub-379311/corpus-webapp:latest' 
+- 'gcr.io/$PROJECT_ID/corpus-webapp:latest' 
