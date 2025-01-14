@@ -115,6 +115,7 @@ def create_corpus(metadata: CorpusMetadata) -> tuple[dh.Corpus, str]:
         allow_duplicates=False,
     )
     
+    
     return dh_corpus_object, metadata.doc_type_selection
 
 
@@ -131,6 +132,7 @@ def create_app() -> Flask:
 
     @app.route("/submit-form", methods=["POST"])
     def make_corpus() -> str:
+        print("Form data received:", request.form)
         corpus_metadata = CorpusMetadata.from_dict(request.form)
         
         corpus, doctype = create_corpus(corpus_metadata)

@@ -31,8 +31,7 @@ steps:
   entrypoint: gcloud
   args: 
    - 'run' 
-   - 'deploy' 
-   - 'privatarkiv-search-signatur' 
+   - 'deploy'  
    - '--image' 
    - 'gcr.io/jupyterhub-379311/corpus-webapp:latest' 
    - '--region' 
@@ -47,6 +46,6 @@ steps:
    - '--command'
    - 'flask'
    - '--args'
-   - 'run app.py --server.port 5000 --browser.gatherUsageStats=False --server.baseUrlPath /privatarkiv-search-signatur'
+   - 'run app.py --server.port 5000 --browser.gatherUsageStats=False --server.baseUrlPath'
 images:
 - 'gcr.io/jupyterhub-379311/corpus-webapp:latest' 

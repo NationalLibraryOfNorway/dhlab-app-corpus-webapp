@@ -120,7 +120,7 @@
                         <span class="help-text">Metode 'first' er raskest, og velger dokument etter hvert som de blir funnet. <br> 'rank' gir en rask ordning på dokumenter om korpuset er definert med et fulltekstsøk og sorterer på relevans. <br>'random' samler først inn hele korpuset og gjør deretter et vilkårlig utvalg av tekster derfra.</span>
                     </span>
                 </label>
-                <select name="type_" hx-get="search_type" hx-target="#search">
+                <select name="search_type" hx-get="search_type" hx-target="#search">
                     <option value="first">first</option>
                     <option value="rank">rank</option>
                     <option value="random">random</option>
