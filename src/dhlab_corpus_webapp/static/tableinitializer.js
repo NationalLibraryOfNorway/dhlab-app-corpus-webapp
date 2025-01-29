@@ -1,5 +1,7 @@
 function initializeDataTable(filename) {
     new DataTable('#results_table', {
+        paging: true,
+        responsive: true, //makes the table fit different screen sizes by auto adjusting
         layout: {
             topStart: 'buttons'
         },
@@ -16,6 +18,8 @@ function initializeDataTable(filename) {
             }
         ]
     });
+    
+
 }
 
 
