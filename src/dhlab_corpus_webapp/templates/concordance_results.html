@@ -1,0 +1,25 @@
+<table>
+    <caption>
+      Results
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col">Tittel</th>
+        <th scope="col">Forfatter</th>
+        <th scope="col">Utgitt</th>
+        <th scope="col">urn</th>
+        <th scope="col">Kontekst</th>
+      </tr>
+    </thead>
+    <tbody>
+	{% for row in resultframe.itertuples() %}
+        <tr>
+            <th scope="row">{{row.title}}</th>
+            <td>{{row.authors}}</td>
+            <td>{{row.timestamp.strftime(row.timeformat)}}</td>
+            <td>{{row.link | safe}}</td>
+            <td>{{row.concordance | safe}}</td>
+        </tr>
+	{% endfor %}
+    </tbody>
+  </table>

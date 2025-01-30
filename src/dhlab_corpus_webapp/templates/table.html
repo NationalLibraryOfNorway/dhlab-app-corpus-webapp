@@ -2,10 +2,32 @@
         {{res_table | safe}}
 </div>
 
+<!--<table id="res_table" class="display nowrap" width="100%">
+        <thead>
+            <tr>
+                <th data-priority="1">First name</th>
+                <th>dhlabid</th>
+                <th>urn</th>
+                <th>title</th>
+                <th data-priority="2">city.</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in table_data %}
+                <tr>
+                    <td>{{ row['dhlabid'] }}</td>
+                    <td>{{ row['urn'] }}</td>
+                    <td>{{ row['title'] }}</td>
+                    <td>{{ row['city'] }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>-->
+
 <script>
-        var corpusName = "{{ corpus_name_ }}";  //Render the Flask variable into JavaScript
+        //stash table in session storage
        
         const jsonString = JSON.stringify({{ json_table | safe }});
-        localStorage.setItem('datatableContent', jsonString);
-        localStorage.setItem('corpusName', corpusName);
+        sessionStorage.setItem('datatableContent', jsonString);
+
 </script>

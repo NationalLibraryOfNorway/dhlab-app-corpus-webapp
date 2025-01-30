@@ -1,0 +1,23 @@
+<form
+    id="corpus-uploader"
+    hx-post="/submit-form"
+    class="upload-form"
+    enctype="multipart/form-data"
+    hx-encoding="multipart/form-data"
+    hx-trigger="clicked, change, submit"
+    hx-target="#corpus-results"
+    hx-indicator="#loading-text": true
+>              
+    <label for="image">Last opp et korpus som regneark</label>
+    <input type="file" id="spreadsheet" name="spreadsheet" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
+    <div class="submit-button">
+        <div id="button-1">
+            <input
+                type="button"
+                name="update-search"
+                value="Bygg korpus"
+                hx-on:click="htmx.trigger('#search-form', 'submit');"
+            >
+        </div>
+    </div>
+</form>
