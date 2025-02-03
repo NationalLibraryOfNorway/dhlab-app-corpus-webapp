@@ -1,1 +1,12 @@
-TODO: search collocations
+<form
+    id="search-form"
+    hx-get="search_collocation"
+    hx-trigger="clicked, change, submit"
+    hx-target="#collocation-search-results"
+    hx-indicator="#loading-text"
+    hx-request='{"noHeaders": true}'
+>
+    <label for="search">Skriv inn søkeuttrykk:</label>
+    <input class="form-control" type="search" name="search" placeholder="Søkeuttrykk">
+    <button class="btn" type="submit">Søk</button>
+</form>

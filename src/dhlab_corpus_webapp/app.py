@@ -65,7 +65,6 @@ def create_app() -> Flask:
     @app.route("/search_concordance")
     @cross_origin()
     def search_concordances() -> str:
-        # Retrieve corpus metadata from session
         if 'urn_list' in session:
             corpus = dh.Corpus()
             corpus.extend_from_identifiers(session['urn_list'])
@@ -85,8 +84,34 @@ def create_app() -> Flask:
             "concordance_results.html",
             resultframe=resultframe
         )
+    
+    @app.route("/search_collocation")
+    @cross_origin()
+    def search_collocations() -> str:
+        if 'urn_list' in session:
+            corpus = dh.Corpus()
+            corpus.extend_from_identifiers(session['urn_list'])
+        elif 'corpus_metadata' in session:
+            corpus_metadata = CorpusMetadata(**session['corpus_metadata'])
+            corpus = create_corpus(corpus_metadata)
+        else:
+            raise ValueError("No corpus data found in session")
+        
+        words = request.args.get("search")
+        #before = int(request.args.get("before", 10))
+        #after = int(request.args.get("after", 10))
+        collocation = conc_coll.Collocations(corpus, words, before=10, after=10, reference=None, samplesize=20000, alpha=False, ignore_caps=False)
+        print(type(collocation))
+        collocation_df = collocation.frame
+        print(collocation_df.columns)
+    
+        return render_template('collocation_results.html', resultframe=collocation.frame)
+
+        #resultframe = process_concordance_results(collocation, corpus)
+
 
     return app
+
 
 def process_concordance_results(concordances, corpus):
     def get_timeformat(df: pd.DataFrame) -> list[str]:
