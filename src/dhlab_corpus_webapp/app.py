@@ -177,9 +177,7 @@ def create_corpus(corpus_metadata: CorpusMetadata) -> dh.Corpus:
     return dh_corpus_object
 
 
-#@lru_cache
-def speadsheet_to_corpus(file) -> dict:
-    
+def speadsheet_to_corpus(file) -> dh.Corpus:
     uploaded_file = file.get('spreadsheet')
     
     if uploaded_file.filename.endswith('.csv'):
@@ -189,10 +187,14 @@ def speadsheet_to_corpus(file) -> dict:
         df = pd.read_excel(uploaded_file)
 
     urn_list = df["urn"].dropna().tolist() 
-    #session['urn_list'] = urn_list
+    
+    return urn_list_to_corpus(tuple(urn_list))
 
+
+@lru_cache
+def urn_list_to_corpus(urn_list: tuple[str]) -> dh.Corpus:
     corpus = dh.Corpus()
-    corpus.extend_from_identifiers(urn_list)
+    corpus.extend_from_identifiers(list(urn_list))
     return corpus
 
 CORPUS_COLUMNS: dict[str, list[str]] = {
