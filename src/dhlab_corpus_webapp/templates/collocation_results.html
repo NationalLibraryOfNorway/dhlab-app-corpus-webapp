@@ -1,0 +1,22 @@
+<table>
+    <caption>
+      Results
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col">Kollokat</th>
+        <th scope="col">Råfrekvens</th>
+        <th scope="col">Relevans</th>
+      </tr>
+    </thead>
+    <tbody>
+	{% for row in resultframe.itertuples() %}
+        <tr>
+            <th scope="row">{{row.title}}</th>
+            <td>{{row.collocat}}</td>
+            <td>{{row.counts}}</td>
+            <td>{{row.relevance}}</td>
+        </tr>
+	{% endfor %}
+    </tbody>
+  </table>
