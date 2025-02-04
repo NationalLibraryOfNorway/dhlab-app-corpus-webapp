@@ -1,25 +1,20 @@
-function initializeDataTable(filename) {
+function initializeDataTable(filename) { 
     new DataTable('#results_table', {
-        paging: true,
-        responsive: true, //makes the table fit different screen sizes by auto adjusting
-        layout: {
-            topStart: 'buttons'
-        },
+        dom: 'Bfrtip',
+        responsive: true,
         buttons: [
             {
-                extend: 'csv',
-                text: 'Last ned data i csv-format',
-                filename: filename
+                extend: 'excel',
+                filename: 'korpus'
             },
             {
-                extend: 'excel',
-                text: 'Last ned data i excel-format',
-                filename: filename
+                extend: 'csv',
+                title: 'korpus', 
+                bom: true, 
             }
         ]
     });
-    
-
 }
+
 
 

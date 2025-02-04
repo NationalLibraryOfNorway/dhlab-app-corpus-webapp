@@ -45,6 +45,7 @@ def create_app() -> Flask:
             
             corpus = create_corpus(corpus_metadata)
             json_table = corpus.frame.to_json(orient="records")
+        print(corpus['timestamp'])
 
         return render_template(
             "table.html",
