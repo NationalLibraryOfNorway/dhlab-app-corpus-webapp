@@ -2,11 +2,24 @@
     id="search-form"
     hx-get="search_concordance"
     hx-trigger="clicked, change, submit"
-    hx-target="#concordance-search-results"
+    hx-target="#results-field"
     hx-indicator="#loading-text"
     hx-request='{"noHeaders": true}'
+    hx-include="#urn_json" 
 >
+    <input type="hidden" name="urn_json" id="urn_json">
     <label for="search">Skriv inn søkeuttrykk:</label>
     <input class="form-control" type="search" name="search" placeholder="Søkeuttrykk">
     <button class="btn" type="submit">Søk</button>
 </form>
+
+<script>
+    // Before form submission, retrieve urn_list from localStorage
+    document.getElementById('search-form').addEventListener('submit', function(event) {
+        // Retrieve the urn_list from localStorage
+        var urnListFromLocalStorage = JSON.parse(sessionStorage.getItem("urn_json"));
+        
+        // Set the urn_list hidden input field with the value from localStorage
+        document.getElementById('urn_json').value = JSON.stringify(urnListFromLocalStorage);
+    });
+</script>

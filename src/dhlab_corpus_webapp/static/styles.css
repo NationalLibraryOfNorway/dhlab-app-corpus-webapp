@@ -310,13 +310,6 @@ input, select {
     width: 100%;
 }
 
-div.make-corpus {
-    border: 2px solid #ccc;
-    border-radius: 8px;
-    padding: 10px;
-    margin-top: 15px;
-
-}
 
 .submit-button {
     display: flex;
@@ -562,4 +555,10 @@ input[type="checkbox"] {
 #selectedItems {
     margin-top: 20px;
     font-weight: bold;
+}
+
+.search-coll form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
 }

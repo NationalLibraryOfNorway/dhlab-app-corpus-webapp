@@ -6,7 +6,14 @@ import pandas as pd
 from flask_cors import cross_origin
 import dhlab.text.conc_coll as conc_coll
 import jinja_partials
-from typing import Self
+from typing import Counter, Self
+from dhlab.api.dhlab_api import totals
+import dhlab.nbtext as nb
+from wordcloud import WordCloud
+#import wordcloud
+import matplotlib.pyplot as plt
+import io
+import base64
 
 def create_app() -> Flask:
     app = Flask(__name__)
@@ -45,12 +52,13 @@ def create_app() -> Flask:
             
             corpus = create_corpus(corpus_metadata)
             json_table = corpus.frame.to_json(orient="records")
-        print(corpus['timestamp'])
+            doctype = corpus["doctype"].iloc[0]
+            selected_columns = process_corpus_data(corpus, doctype)
 
         return render_template(
             "table.html",
             json_table=json_table,
-            res_table=corpus.frame.to_html(table_id="results_table", border=0),
+            res_table=selected_columns.to_html(table_id="results_table", border=0),
         )
 
     @app.route("/search-form-action")
@@ -66,6 +74,7 @@ def create_app() -> Flask:
     @app.route("/search_concordance")
     @cross_origin()
     def search_concordances() -> str:
+        # Retrieve corpus metadata from session
         if 'urn_list' in session:
             corpus = dh.Corpus()
             corpus.extend_from_identifiers(session['urn_list'])
@@ -89,6 +98,13 @@ def create_app() -> Flask:
     @app.route("/search_collocation")
     @cross_origin()
     def search_collocations() -> str:
+        """ 
+        1) Bygg kollokasjonen
+
+        2) Finn en referanse
+
+        3) Sammenlign kollokasjon med referanse
+        """
         if 'urn_list' in session:
             corpus = dh.Corpus()
             corpus.extend_from_identifiers(session['urn_list'])
@@ -99,20 +115,31 @@ def create_app() -> Flask:
             raise ValueError("No corpus data found in session")
         
         words = request.args.get("search")
-        #before = int(request.args.get("before", 10))
-        #after = int(request.args.get("after", 10))
-        collocation = conc_coll.Collocations(corpus, words, before=10, after=10, reference=None, samplesize=20000, alpha=False, ignore_caps=False)
-        print(type(collocation))
-        collocation_df = collocation.frame
-        print(collocation_df.columns)
-    
-        return render_template('collocation_results.html', resultframe=collocation.frame)
+        print(type(words))
+        #reference_corpus = request.args.get("ref_korpus")
+        words_before = request.args.get("words_before", 10)
+        print(type(words_before))
+        words_after = request.args.get("words_after", 10)
 
-        #resultframe = process_concordance_results(collocation, corpus)
+        #Bygg kollokasjon
+        tot = totals(50000) #referansekorpus- skal erstattes med csv-er senere
+        coll = corpus.coll(words=words, before=int(words_before), after=int(words_after), samplesize=1000, reference=tot)
+        
+        coll_sorted = coll.frame.sort_values(ascending=False, by="relevance")
+        #coll_sorted.columns = ['Kollokat'] + coll_sorted.columns[0:].tolist()
+        #print(coll_sorted.head(5))
+        resultframe = coll_sorted
 
+        #wc = make_wordcloud(coll_sorted)
+        
+        return render_template(
+            "collocation_results.html",
+            resultframe=resultframe
+            #coll_sorted=coll_sorted.to_html(table_id="coll_table", border=0), 
+            #wordcloud=wordcloud
+        )
 
     return app
-
 
 def process_concordance_results(concordances, corpus):
     def get_timeformat(df: pd.DataFrame) -> list[str]:
@@ -146,7 +173,13 @@ def process_concordance_results(concordances, corpus):
         "link",
     ]]
 
-    #return app
+def make_wordcloud(df, word_column="Kollokat", relevance_column='relevance', 
+                      width=800, height=400, background_color='white'):
+    # Create dictionary where word frequencies are based on relevance scores
+    word_freq = dict(zip(df[word_column], df[relevance_column]))
+    
+    wc = WordCloud(width=800, height=400).generate_from_frequencies(word_freq)
+    return wc
 
 @dataclass(frozen=True)
 class CorpusMetadata:
@@ -272,6 +305,20 @@ CORPUS_COLUMNS: dict[str, list[str]] = {
         "publisher",
         "langs",
     ],
+}
+
+REFERENCES = {
+    "generisk referanse (1800-2022)": "reference/nob-nno_1800_2022.csv",
+    "nåtidig bokmål (2000-)": "reference/nob_2000_2022.csv",
+    "nåtidig nynorsk (2000-)": "reference/nno_2000_2022.csv",
+    "bokmål (1950-2000)": "reference/nob_1950_2000.csv",
+    "nynorsk (1950-2000)": "reference/nno_1950_2000.csv",
+    "bokmål (1920-1950)": "reference/nob_1920_1950.csv",
+    "nynorsk (1920-1950)": "reference/nno_1920_1950.csv",
+    "bokmål (1875-1920)": "reference/nob_1875_1920.csv",
+    "nynorsk (1875-1920)": "reference/nno_1875_1920.csv",
+    "tidlig dansk-norsk/bokmål (før 1875)": "reference/nob_1800_1875.csv",
+    "tidlig nynorsk (før 1875)": "reference/nob_1848_1875.csv"
 }
 
 

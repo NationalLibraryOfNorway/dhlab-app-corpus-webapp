@@ -1,12 +1,58 @@
-<form
-    id="search-form"
-    hx-get="search_collocation"
-    hx-trigger="clicked, change, submit"
-    hx-target="#collocation-search-results"
-    hx-indicator="#loading-text"
-    hx-request='{"noHeaders": true}'
->
-    <label for="search">Skriv inn søkeuttrykk:</label>
-    <input class="form-control" type="search" name="search" placeholder="Søkeuttrykk">
-    <button class="btn" type="submit">Søk</button>
-</form>
+<div class="search-coll">
+    <form
+        id="search-form"
+        hx-get="search_collocation"
+        hx-trigger="clicked, change, submit"
+        hx-target="#collocation-search-results"
+        hx-indicator="#loading-text"
+        hx-request='{"noHeaders": true}'
+        class="search-form-horizontal"
+    >
+        <div class="form-group">
+            <label for="search">Skriv inn basisord her:</label>
+            <input class="form-control" type="search" name="search" placeholder="Søkeuttrykk">
+        </div>
+
+        <div class="form-group">
+            <label for="collocation_select">Velg referansekorpus:</label>
+            <select name="ref_korpus" id="referansekorpus">
+                <option value="">Velg referansekorpus</option>
+                <option value="gen_ref">Generisk referanse (1800-2022)</option>
+                <option value="naatidig_bokmaal">Nåtidig bokmål (2000-)</option>
+                <option value="bokmaal">Bokmål (1950-2000)</option>
+                <option value="nynorsk">Nynorsk (1950-2000)</option>
+                <option value="bokmaal_1920_1950">Bokmål (1920-1950)</option>
+                <option value="nynorsk_1920_1950">Nynorsk (1920-1950)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="words_before_">Ord før basisord</label>
+            <input type="number" id="words_before_" name="words_before" min="1" max="50" value="10" />
+        </div>
+
+        <div class="form-group">
+            <label for="words_after_">Ord etter basisord</label>
+            <input type="number" id="words_after_" name="words_after" min="1" max="50" value="10" />
+        </div>
+
+        <div class="form-group">
+            <label for="relevance_">Terskelverdi: Relevans</label>
+            <input type="number" id="relevance_" name="relevance" min="1" max="100" value="10" />
+        </div>
+
+        <div class="form-group">
+            <label for="raw_freq_">Terskelverdi: Råfrekvens</label>
+            <input type="number" id="raw_freq_" name="raw_freq" min="1" max="100" value="5"/>
+        </div>
+
+        <div class="form-group">
+            <label for="max_coll_">Maks antall kollokasjoner</label>
+            <input type="number" id="max_coll_" name="max_coll" min="1" max="100" value="20"/>
+        </div>
+        
+        <div class="button-1">
+            <button class="btn" type="submit">Søk</button>
+        </div>
+    </form>
+</div>

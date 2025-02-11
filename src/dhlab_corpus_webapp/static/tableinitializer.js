@@ -1,6 +1,6 @@
 function initializeDataTable(filename) { 
     new DataTable('#results_table', {
-        dom: 'Bfrtip',
+        dom: 'frtipB',
         responsive: true,
         buttons: [
             {
