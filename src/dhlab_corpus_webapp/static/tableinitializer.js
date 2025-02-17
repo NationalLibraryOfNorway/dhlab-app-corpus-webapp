@@ -5,12 +5,12 @@ function initializeDataTable(filename) {
         buttons: [
             {
                 extend: 'excel',
-                filename: 'korpus'
+                filename: 'korpus',
+                title: null
             },
             {
                 extend: 'csv',
-                title: 'korpus', 
-                bom: true, 
+                filename: 'korpus', 
             }
         ]
     });
