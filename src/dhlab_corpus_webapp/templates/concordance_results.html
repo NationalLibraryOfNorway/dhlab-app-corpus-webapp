@@ -1,6 +1,8 @@
-<table>
+<div class="datatable-container">
+  <div class="scrollable-table-container">
+      <table id="results_table_conc" class="display">
     <caption>
-      Results
+      Results:
     </caption>
     <thead>
       <tr>
@@ -23,3 +25,19 @@
 	{% endfor %}
     </tbody>
   </table>
+
+  <script>
+    new DataTable('#results_table_conc', {
+        dom: 'rtipB',
+        responsive: true,
+        paging: false,
+        scrollCollapse: true,
+        scrollY: '200px',
+        buttons: [
+              {
+                  extend: 'excel',
+                  filename: 'korpus'
+              }
+          ]
+    });
+  </script>

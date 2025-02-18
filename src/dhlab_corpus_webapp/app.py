@@ -10,14 +10,13 @@ from typing import Counter, Self
 from dhlab.api.dhlab_api import totals
 import dhlab.nbtext as nb
 from wordcloud import WordCloud
-#import wordcloud
 import matplotlib.pyplot as plt
 import io
 import base64
 
 def create_app() -> Flask:
     app = Flask(__name__)
-    app.secret_key = "superhemmelig-noekkel"  # Required for session management
+    app.secret_key = "superhemmelig-noekkel"  
     
     @app.route("/")
     def index() -> str:
@@ -74,15 +73,8 @@ def create_app() -> Flask:
     @app.route("/search_concordance")
     @cross_origin()
     def search_concordances() -> str:
-        # Retrieve corpus metadata from session
-        if 'urn_list' in session:
-            corpus = dh.Corpus()
-            corpus.extend_from_identifiers(session['urn_list'])
-        elif 'corpus_metadata' in session:
-            corpus_metadata = CorpusMetadata(**session['corpus_metadata'])
-            corpus = create_corpus(corpus_metadata)
-        else:
-            raise ValueError("No corpus data found in session")
+        
+        corpus = get_corpus_from_session() #Retrieve corpus metadata from session
 
         query = request.args.get("search")
         window = int(request.args.get("window", 20))
@@ -98,48 +90,58 @@ def create_app() -> Flask:
     @app.route("/search_collocation")
     @cross_origin()
     def search_collocations() -> str:
-        """ 
-        1) Bygg kollokasjonen
 
-        2) Finn en referanse
-
-        3) Sammenlign kollokasjon med referanse
-        """
-        if 'urn_list' in session:
-            corpus = dh.Corpus()
-            corpus.extend_from_identifiers(session['urn_list'])
-        elif 'corpus_metadata' in session:
-            corpus_metadata = CorpusMetadata(**session['corpus_metadata'])
-            corpus = create_corpus(corpus_metadata)
-        else:
-            raise ValueError("No corpus data found in session")
-        
+        corpus = get_corpus_from_session()
         words = request.args.get("search")
-        print(type(words))
-        #reference_corpus = request.args.get("ref_korpus")
         words_before = request.args.get("words_before", 10)
-        print(type(words_before))
         words_after = request.args.get("words_after", 10)
-
-        #Bygg kollokasjon
-        tot = totals(50000) #referansekorpus- skal erstattes med csv-er senere
-        coll = corpus.coll(words=words, before=int(words_before), after=int(words_after), samplesize=1000, reference=tot)
+        reference_corp = request.args.get("ref_korpus", 10)
+        max_coll = request.args.get("max_coll")
+        sorting_method = request.args.get("sorting_method")
+        reference_path = f"reference/{reference_corp}"
+        reference = read_csv(reference_path)
+        print(sorting_method)
         
-        coll_sorted = coll.frame.sort_values(ascending=False, by="relevance")
-        #coll_sorted.columns = ['Kollokat'] + coll_sorted.columns[0:].tolist()
-        #print(coll_sorted.head(5))
-        resultframe = coll_sorted
 
-        #wc = make_wordcloud(coll_sorted)
+        coll = corpus.coll(words=words, before=int(words_before), after=int(words_after), samplesize=1000, reference=reference)
+
+        coll_selected = coll.frame.sort_values(ascending=False, by=sorting_method)
+        resultframe = coll_selected.head(int(max_coll))
+
+        print(resultframe.head(10))
+
+        wordcloud_image = make_wordcloud(resultframe)
         
         return render_template(
             "collocation_results.html",
-            resultframe=resultframe
-            #coll_sorted=coll_sorted.to_html(table_id="coll_table", border=0), 
-            #wordcloud=wordcloud
+            resultframe=resultframe,
+            wordcloud_image=wordcloud_image
         )
 
     return app
+
+def read_csv(reference_path) -> pd.DataFrame:
+    try:
+        reference_df = pd.read_csv(reference_path)
+        reference_df.columns = ["word", "freq"]
+        reference = reference_df.set_index("word")
+    except:
+        print("Statisk referansekorpus kunne ikke hentes. Se på parametrene for korpuset eller prøv igjen.")
+
+    return reference
+
+def get_corpus_from_session() -> dh.Corpus:
+    """Create and return a corpus based on session data."""
+    if 'urn_list' in session:
+        corpus = dh.Corpus()
+        corpus.extend_from_identifiers(session['urn_list'])
+    elif 'corpus_metadata' in session:
+        corpus_metadata = CorpusMetadata(**session['corpus_metadata'])
+        corpus = create_corpus(corpus_metadata)
+    else:
+        raise ValueError("No corpus data found in session")
+    
+    return corpus
 
 def process_concordance_results(concordances, corpus):
     def get_timeformat(df: pd.DataFrame) -> list[str]:
@@ -173,13 +175,30 @@ def process_concordance_results(concordances, corpus):
         "link",
     ]]
 
-def make_wordcloud(df, word_column="Kollokat", relevance_column='relevance', 
-                      width=800, height=400, background_color='white'):
-    # Create dictionary where word frequencies are based on relevance scores
-    word_freq = dict(zip(df[word_column], df[relevance_column]))
+def make_wordcloud(df, width=800, height=400, background_color='white'): 
+
+    index_series = df.index.to_series()
+    words = index_series.str.replace(r'\s+\d+$', '', regex=True)
+    word_freq = dict(zip(words, df['relevance']))
     
-    wc = WordCloud(width=800, height=400).generate_from_frequencies(word_freq)
-    return wc
+    wc = WordCloud(width=width, 
+                  height=height, 
+                  background_color=background_color,
+                  max_words=100)
+    
+    wc.generate_from_frequencies(word_freq)
+    
+    img = io.BytesIO()
+    plt.figure(figsize=(10, 5))
+    plt.imshow(wc, interpolation='bilinear')
+    plt.axis('off')
+    plt.savefig(img, format='png', bbox_inches='tight', pad_inches=0)
+    plt.close()
+    
+    img.seek(0)
+    img_str = base64.b64encode(img.getvalue()).decode()
+    
+    return img_str
 
 @dataclass(frozen=True)
 class CorpusMetadata:

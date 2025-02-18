@@ -9,7 +9,7 @@ function initializeDataTable(filename) {
             },
             {
                 extend: 'csv',
-                title: 'korpus', 
+                filename: 'korpus', 
                 bom: true, 
             }
         ]

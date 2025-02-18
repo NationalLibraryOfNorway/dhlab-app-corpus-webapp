@@ -32,23 +32,31 @@
         <div>Bygger korpus</div>
         <span class="loader"></span>
         </div>
-    <!---Table for displaying results-->
     <div id="corpus-selection" name="corpus-selection">
 
+        <p> </p>
     </div>
 
-    <div id="corpus-results"></div>
+        <div id="corpus-results"></div>
      
-    <div
-        class="datatable-container"
-        id="corpus-table"
-        hx-on::after-swap="initializeDataTable(document.getElementById('results_table').value)"
-    >
-    </div>
+        <details class="corpus-details">
+            <summary>Vis korpustabell</summary>
+            <div 
+                class="datatable-container"
+                id="corpus-table"
+                hx-on::after-swap="initializeDataTable(document.getElementById('results_table').value)"
+            >
+                {% include 'table.html' %}
+            </div>
+        </details>
+
+
+    <br>
 
     <div id="choose-action" name="action"> 
-        <label for="corpus-action" class="corpus-action-label">Velg hva du vil gjøre med korpuset ditt:</label>
+        <label for="corpus-action" class="corpus-action-label">  <br> Lag konkordanser eller kollokasjoner:</label>
         <select name="type_" hx-get="/search-form-action" hx-target="#results-field"> <!--sender forespørsel til Flask-->
+            <option value="" disabled selected hidden>Valg...</option>
             <option value="search-collocation">Søk etter kollokasjoner</option>
             <option value="search-concordance">Søk etter konkordanser</option>
         </select>
@@ -57,9 +65,6 @@
 
     <div id="results-field"></div>
 
-    <!--<div id="concordance-search-results"></div>-->
-
-    <div id="collocation-search-results"></div>
-
     </main>
     {% endblock content %}
+
