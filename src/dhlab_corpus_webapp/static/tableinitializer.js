@@ -11,6 +11,8 @@ function initializeDataTable(filename) {
             {
                 extend: 'csv',
                 filename: 'korpus', 
+                bom: true, 
+
             }
         ]
     });

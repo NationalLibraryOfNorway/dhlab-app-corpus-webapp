@@ -1,12 +1,12 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("click", function() {
     var docTypeSelection = document.getElementById('doc_type_selection_');
     if (!docTypeSelection) {
         console.error("Dropdown not found");
         return; 
     }
     
-    var authorField = document.getElementById('author');
-    var deweyField = document.getElementById('dewey')
+    var authorField = document.getElementById('author_');
+    var deweyField = document.getElementById('dewey_')
 
     function updateAuthorField() {
         console.log("Dropdown value changed to:", docTypeSelection.value); 

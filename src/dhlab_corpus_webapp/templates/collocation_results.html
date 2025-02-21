@@ -1,25 +1,48 @@
-<table>
-  <caption>
-    Resultater
-  </caption>
-  <thead>
-    <tr>
-      <th scope="col">Kollokat</th>
-      <th scope="col">Råfrekvens</th>
-      <th scope="col">Relevans</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for row in resultframe.itertuples() %}
-      <tr>
-        <td>{{ row.Index }}</td>  <!-- The row's name (Heather, Casey, etc.) will be in the Index field -->
-        <td>{{ row.counts }}</td> <!-- Column for counts -->
-        <td>{{ row.relevance }}</td> <!-- Column for relevance -->
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="flex-container">
+  <div class="datatable-container">
+      <div class="scrollable-table-container">
+          <table id="results_table_2" class="display">
+              <caption>Resultater:</caption>
+              <thead>
+                  <tr>
+                      <th scope="col">Kollokat</th>
+                      <th scope="col">Råfrekvens</th>
+                      <th scope="col">Relevans</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  {% for row in resultframe.itertuples() %}
+                      <tr>
+                          <td>{{ row.Index }}</td>
+                          <td>{{ row.counts }}</td>
+                          <td>{{ row.relevance }}</td>
+                      </tr>
+                  {% endfor %}
+              </tbody>
+          </table>
+      </div>
+  </div>
 
-  <div class="scrollable-table-container">
-    {{coll_sorted | safe}}
+  <div class="wordcloud-container">
+      <img src="data:image/png;base64,{{ wordcloud_image }}"
+           alt="Word Cloud"
+           class="wordcloud-image">
+  </div>
 </div>
+
+<script>
+  new DataTable('#results_table_2', {
+    dom: 'rtipB',
+    responsive: true,
+    paging: false,
+    scrollCollapse: true,
+    scrollY: '200px',
+    buttons: [
+        {
+            extend: 'excel',
+            filename: 'kollokasjoner'
+        }
+    ]
+  });
+</script>
+

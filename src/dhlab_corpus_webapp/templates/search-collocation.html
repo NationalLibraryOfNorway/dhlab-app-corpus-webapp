@@ -3,7 +3,7 @@
         id="search-form"
         hx-get="search_collocation"
         hx-trigger="clicked, change, submit"
-        hx-target="#collocation-search-results"
+        hx-target="#results-field"
         hx-indicator="#loading-text"
         hx-request='{"noHeaders": true}'
         class="search-form-horizontal"
@@ -14,15 +14,23 @@
         </div>
 
         <div class="form-group">
-            <label for="collocation_select">Velg referansekorpus:</label>
+            <label for="collocation_select">Velg referansekorpus:
+            <span class="help-tooltip">
+                <ion-icon name="help-circle-outline" class="help-icon"></ion-icon>
+                <span class="help-text">Velg referansekorpus som kollokasjonene skal beregnes på bakgrunn av.</span>
+            </span>
+        </label>
             <select name="ref_korpus" id="referansekorpus">
-                <option value="">Velg referansekorpus</option>
-                <option value="gen_ref">Generisk referanse (1800-2022)</option>
-                <option value="naatidig_bokmaal">Nåtidig bokmål (2000-)</option>
-                <option value="bokmaal">Bokmål (1950-2000)</option>
-                <option value="nynorsk">Nynorsk (1950-2000)</option>
-                <option value="bokmaal_1920_1950">Bokmål (1920-1950)</option>
-                <option value="nynorsk_1920_1950">Nynorsk (1920-1950)</option>
+                <option value="nob-nno_1800_2022.csv">Generisk referanse (1800-2022)</option>
+                <option value="nob_2000_2022.csv">Nåtidig bokmål (2000-2022)</option>
+                <option value="nno_2000_2022.csv">Nåtidig nynorsk (2000-2022)</option>
+                <option value="nob_1950_2000.csv">Bokmål (1950-2000)</option>
+                <option value="nno_1950_2000.csv">Nynorsk (1950-2000)</option>
+                <option value="nob_1920_1950.csv">Bokmål (1920-1950)</option>
+                <option value="nno_1920_1950.csv">Nynorsk (1920-1950)</option>
+                <option value="nno_1848_1875.csv">Nynorsk (1848-1875)</option>
+                <option value="nno_1875_1920.csv">Nynorsk (1875-1920)</option>
+                <option value="nob_1800_1875.csv">Norsk bokmål (1800-1875)</option>
             </select>
         </div>
 
@@ -49,6 +57,19 @@
         <div class="form-group">
             <label for="max_coll_">Maks antall kollokasjoner</label>
             <input type="number" id="max_coll_" name="max_coll" min="1" max="100" value="20"/>
+        </div>
+
+        <div class="form-group">
+            <label for="collocation_select">Sorter etter:
+            <span class="help-tooltip">
+                <ion-icon name="help-circle-outline" class="help-icon"></ion-icon>
+                <span class="help-text">Velg referansekorpus som kollokasjonene skal beregnes på bakgrunn av.</span>
+            </span>
+        </label>
+            <select name="sorting_method" id="sorting_method_">
+                <option value="relevance">Relevans</option>
+                <option value="counts">Råfrekvens</option>
+            </select>
         </div>
         
         <div class="button-1">
