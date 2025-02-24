@@ -10,6 +10,8 @@ from typing import Counter, Self
 from dhlab.api.dhlab_api import totals
 import dhlab.nbtext as nb
 from wordcloud import WordCloud
+import matplotlib
+matplotlib.use("agg")  # We must set the backend before importing pyplot
 import matplotlib.pyplot as plt
 import io
 import base64
