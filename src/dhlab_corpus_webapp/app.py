@@ -16,7 +16,8 @@ import base64
 
 def create_app() -> Flask:
     app = Flask(__name__)
-    app.secret_key = "superhemmelig-noekkel"  
+    app.secret_key = "superhemmelig-noekkel"
+    #app.config['APPLICATION_ROOT'] = '/corpus-webapp'
     
     @app.route("/")
     def index() -> str:
@@ -100,15 +101,11 @@ def create_app() -> Flask:
         sorting_method = request.args.get("sorting_method")
         reference_path = f"reference/{reference_corp}"
         reference = read_csv(reference_path)
-        print(sorting_method)
         
-
         coll = corpus.coll(words=words, before=int(words_before), after=int(words_after), samplesize=1000, reference=reference)
 
         coll_selected = coll.frame.sort_values(ascending=False, by=sorting_method)
         resultframe = coll_selected.head(int(max_coll))
-
-        print(resultframe.head(10))
 
         wordcloud_image = make_wordcloud(resultframe)
         

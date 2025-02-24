@@ -1,7 +1,7 @@
 [project]
 name = "dhlab-corpus-webapp"
 version = "0.1.0"
-description = "App to build corpus from NLN's digital collections"
+description = "App to build corpus, collocations and concordances from NLN's digital collections"
 readme = "README.md"
 requires-python = ">=3.12"
 authors = [
@@ -15,6 +15,7 @@ dependencies = [
     "gunicorn>=23.0.0",
     "jinja-partials>=0.2.1",
     "jinja2>=3.1.4",
+    "wordcloud>=1.9.4",
 ]
 
 [build-system]
