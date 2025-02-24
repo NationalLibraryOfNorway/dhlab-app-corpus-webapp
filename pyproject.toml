@@ -1,7 +1,7 @@
 [project]
 name = "dhlab-corpus-webapp"
 version = "0.1.0"
-description = "App to build corpus from NLN's digital collections"
+description = "App to build corpus, collocations and concordances from NLN's digital collections"
 readme = "README.md"
 requires-python = ">=3.12"
 authors = [

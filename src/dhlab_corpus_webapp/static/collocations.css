@@ -2,7 +2,8 @@
       display: flex;
       gap: 20px;
       margin: 20px;
-      align-items: flex-start;
+      width: 100%;
+
   }
 
   .datatable-container {
@@ -26,6 +27,10 @@
       height: auto;
   }
 
+  .button {
+    padding: 100px;
+  }
+
   #results_table_2 {
       width: 100%;
       margin: 0;
@@ -34,4 +39,8 @@
   /* Ensure the DataTable doesn't break the layout */
   .dataTables_wrapper {
       width: 100%;
+  }
+
+  .btn {
+    margin-top: 100px; 
   }
