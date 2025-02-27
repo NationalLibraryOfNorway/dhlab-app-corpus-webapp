@@ -47,6 +47,7 @@ def create_app() -> Flask:
             json_table = corpus.frame.to_json(orient="records")
         else:
             corpus_metadata = CorpusMetadata.from_dict(request.form)
+            print(corpus_metadata)
             
             session['corpus_metadata'] = asdict(corpus_metadata)
             

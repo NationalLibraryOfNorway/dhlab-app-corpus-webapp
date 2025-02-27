@@ -47,13 +47,13 @@ function updateHiddenLanguagesField(tags) {
     if (!hiddenInput) {
         hiddenInput = document.createElement('input');
         hiddenInput.type = 'hidden';
-        hiddenInput.name = 'languages';  
+        hiddenInput.name = 'language';  
         hiddenInput.id = 'hidden-languages';
         hiddenFieldsContainer.appendChild(hiddenInput);
     }
 
     //Join the selected languages into a string and set it as the value
-    hiddenInput.value = tags.join(' ');  //This will format them as e.g "nob nno sme"
+    hiddenInput.value = tags.join(' OR ');  //This will format them as e.g "nob nno sme"
 }
 
 function removeTag(tag) {
