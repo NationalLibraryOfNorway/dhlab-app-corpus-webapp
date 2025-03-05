@@ -15,13 +15,42 @@ matplotlib.use("agg")  # We must set the backend before importing pyplot
 import matplotlib.pyplot as plt
 import io
 import base64
+from whitenoise import WhiteNoise
+from werkzeug.middleware.proxy_fix import ProxyFix
+
+
+class ReverseProxied(object):
+    def __init__(self, app, script_name=None, scheme=None, server=None):
+        self.app = app
+        self.script_name = script_name
+        self.scheme = scheme
+        self.server = server
+
+    def __call__(self, environ, start_response):
+        script_name = environ.get("HTTP_X_SCRIPT_NAME", "") or self.script_name
+        if script_name:
+            environ["SCRIPT_NAME"] = script_name
+            path_info = environ["PATH_INFO"]
+            if path_info.startswith(script_name):
+                environ["PATH_INFO"] = path_info[len(script_name) :]
+        scheme = environ.get("HTTP_X_SCHEME", "") or self.scheme
+        if scheme:
+            environ["wsgi.url_scheme"] = scheme
+        server = environ.get("HTTP_X_FORWARDED_SERVER", "") or self.server
+        if server:
+            environ["HTTP_HOST"] = server
+        return self.app(environ, start_response)
 
 def create_app() -> Flask:
     app = Flask(__name__)
     app.secret_key = "superhemmelig-noekkel"
-    #app.config['APPLICATION_ROOT'] = '/corpus-webapp'
+    app.config["APPLICATION_ROOT"] = '/corp-conc-coll-webapp'
+    app.wsgi_app = ReverseProxied(app.wsgi_app, script_name='/corp-conc-coll-webapp')
+    #app.config['ROOT_PATH'] = '/corpus-webapp'
+    
     
     @app.route("/")
+    @cross_origin() 
     def index() -> str:
         return render_template(
             "index_base.html",
@@ -30,6 +59,7 @@ def create_app() -> Flask:
         )
     
     @app.route("/corpus-method", methods=['GET', 'POST'])
+    @cross_origin() 
     def corpus_method() -> str:
         type_ = request.args.get("type_")
         if type_ == "build_corpus":
@@ -40,6 +70,7 @@ def create_app() -> Flask:
             raise ValueError(f"Unknown corpus method: {type_}")
 
     @app.route("/submit-form", methods=['GET', 'POST'])
+    @cross_origin() 
     def make_corpus() -> str:
         if request.files:
             uploaded_file = request.files['spreadsheet']
@@ -65,6 +96,7 @@ def create_app() -> Flask:
         )
 
     @app.route("/search-form-action")
+    @cross_origin() 
     def choose_action() -> str:
         type_ = request.args.get("type_")
         if type_ == "search-collocation":
@@ -348,4 +380,4 @@ def process_corpus_data(corpus: dh.Corpus, doctype: str) -> pd.DataFrame:
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5002)
