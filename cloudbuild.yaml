@@ -1,0 +1,33 @@
+steps: 
+# Build the container image 
+- name: 'gcr.io/cloud-builders/docker' 
+  args: ['build', '-f', 'Dockerfile', '-t', 'gcr.io/$PROJECT_ID/corp-conc-coll-webapp:latest', '.'] 
+# Push the container image to Container Registry 
+- name: 'gcr.io/cloud-builders/docker' 
+  args: ['push', 'gcr.io/$PROJECT_ID/corp-conc-coll-webapp:latest'] 
+# Deploy container image to Cloud Run 
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args: 
+   - 'run' 
+   - 'deploy' 
+   - 'corp-conc-coll-webapp' 
+   - '--image' 
+   - 'gcr.io/$PROJECT_ID/corp-conc-coll-webapp:latest' 
+   - '--region' 
+   - 'europe-north1' 
+   - '--allow-unauthenticated' 
+   - '--cpu' 
+   - '1000m'  # Modifiser denne opp eller ned ved behov 
+   - '--memory' 
+   - '1Gi'  # Modifiser denne opp eller ned ved behov 
+   - '--port'
+   - '5002'
+   - '--command'
+   - 'flask'
+   - '--args'
+   - 'run app.py --server.port 5002 --browser.gatherUsageStats=False --server.baseUrlPath /corpus-webapp'
+  env: 
+   - 'ROOT_PATH=/corp-conc-coll-webapp'  # Example for setting a custom root path for the Flask app
+images:      
+- 'gcr.io/$PROJECT_ID/corp-conc-coll-webapp:latest' 

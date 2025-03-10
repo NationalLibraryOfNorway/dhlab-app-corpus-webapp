@@ -180,7 +180,7 @@ wheels = [
 ]
 
 [[package]]
-name = "dhlab-corpus-webapp"
+name = "dhlab-corp-conc-coll-webapp"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
@@ -190,6 +190,7 @@ dependencies = [
     { name = "gunicorn" },
     { name = "jinja-partials" },
     { name = "jinja2" },
+    { name = "whitenoise" },
     { name = "wordcloud" },
 ]
 
@@ -206,6 +207,7 @@ requires-dist = [
     { name = "gunicorn", specifier = ">=23.0.0" },
     { name = "jinja-partials", specifier = ">=0.2.1" },
     { name = "jinja2", specifier = ">=3.1.4" },
+    { name = "whitenoise", specifier = ">=6.9.0" },
     { name = "wordcloud", specifier = ">=1.9.4" },
 ]
 
@@ -903,6 +905,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/d4/f9/0ba83eaa0df9b9e9d1efeb2ea351d0677c37d41ee5d0f91e98423c7281c9/werkzeug-3.0.6.tar.gz", hash = "sha256:a8dd59d4de28ca70471a34cba79bed5f7ef2e036a76b3ab0835474246eb41f8d", size = 805170 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/6c/69/05837f91dfe42109203ffa3e488214ff86a6d68b2ed6c167da6cdc42349b/werkzeug-3.0.6-py3-none-any.whl", hash = "sha256:1bc0c2310d2fbb07b1dd1105eba2f7af72f322e1e455f2f93c993bee8c8a5f17", size = 227979 },
+]
+
+[[package]]
+name = "whitenoise"
+version = "6.9.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/b9/cf/c15c2f21aee6b22a9f6fc9be3f7e477e2442ec22848273db7f4eb73d6162/whitenoise-6.9.0.tar.gz", hash = "sha256:8c4a7c9d384694990c26f3047e118c691557481d624f069b7f7752a2f735d609", size = 25920 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/64/b2/2ce9263149fbde9701d352bda24ea1362c154e196d2fda2201f18fc585d7/whitenoise-6.9.0-py3-none-any.whl", hash = "sha256:c8a489049b7ee9889617bb4c274a153f3d979e8f51d2efd0f5b403caf41c57df", size = 20161 },
 ]
 
 [[package]]

@@ -14,6 +14,6 @@ RUN uv sync
 
 WORKDIR /app/src/dhlab_corpus_webapp
 
-EXPOSE 5000
+EXPOSE 5002
 
-CMD ["uv", "run", "gunicorn", "--bind", "0.0.0.0:5000", "app:app"]
+CMD ["uv", "run", "gunicorn", "--bind", "0.0.0.0:5002", "app:app"]
