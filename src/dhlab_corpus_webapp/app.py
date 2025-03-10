@@ -6,48 +6,26 @@ import pandas as pd
 from flask_cors import cross_origin
 import dhlab.text.conc_coll as conc_coll
 import jinja_partials
-from typing import Counter, Self
-from dhlab.api.dhlab_api import totals
-import dhlab.nbtext as nb
+from typing import Self
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 import io
 import base64
 from whitenoise import WhiteNoise
-from werkzeug.middleware.proxy_fix import ProxyFix
+import os
+from pathlib import Path
 
 
-class ReverseProxied(object):
-    def __init__(self, app, script_name=None, scheme=None, server=None):
-        self.app = app
-        self.script_name = script_name
-        self.scheme = scheme
-        self.server = server
-
-    def __call__(self, environ, start_response):
-        script_name = environ.get("HTTP_X_SCRIPT_NAME", "") or self.script_name
-        if script_name:
-            environ["SCRIPT_NAME"] = script_name
-            path_info = environ["PATH_INFO"]
-            if path_info.startswith(script_name):
-                environ["PATH_INFO"] = path_info[len(script_name) :]
-        scheme = environ.get("HTTP_X_SCHEME", "") or self.scheme
-        if scheme:
-            environ["wsgi.url_scheme"] = scheme
-        server = environ.get("HTTP_X_FORWARDED_SERVER", "") or self.server
-        if server:
-            environ["HTTP_HOST"] = server
-        return self.app(environ, start_response)
+ROOT_PATH = os.environ.get("ROOT_PATH", "")
 
 def create_app() -> Flask:
     app = Flask(__name__)
     app.secret_key = "superhemmelig-noekkel"
-    app.config["APPLICATION_ROOT"] = '/corp-conc-coll-webapp'
-    app.wsgi_app = ReverseProxied(app.wsgi_app, script_name='/corp-conc-coll-webapp')
-    #app.config['ROOT_PATH'] = '/corpus-webapp'
+    static_root_path = Path(__file__).parent / "static"
+    app.wsgi_app = WhiteNoise(app.wsgi_app, root=static_root_path)
+
     
-    
-    @app.route("/")
+    @app.route(f"/{ROOT_PATH}/")
     @cross_origin() 
     def index() -> str:
         return render_template(
@@ -56,7 +34,7 @@ def create_app() -> Flask:
             app_name="Korpus | Konkordanser | Kollokasjoner",
         )
     
-    @app.route("/corpus-method", methods=['GET', 'POST'])
+    @app.route(f"{ROOT_PATH}/corpus-method", methods=['GET', 'POST'])
     @cross_origin() 
     def corpus_method() -> str:
         type_ = request.args.get("type_")
@@ -67,25 +45,26 @@ def create_app() -> Flask:
         else:
             raise ValueError(f"Unknown corpus method: {type_}")
 
-    @app.route("/submit-form", methods=['GET', 'POST'])
+    @app.route(f"{ROOT_PATH}/submit-form", methods=['GET', 'POST'])
     @cross_origin() 
     def make_corpus() -> str:
         if request.files:
             uploaded_file = request.files['spreadsheet']
-            corpus = speadsheet_to_corpus(request.files)
+
+            corpus = speadsheet_to_corpus(uploaded_file)
 
             session['urn_list'] = corpus.frame['urn'].tolist()
-            json_table = corpus.frame.to_json(orient="records")
+
         else:
             corpus_metadata = CorpusMetadata.from_dict(request.form)
-            print(corpus_metadata)
             
             session['corpus_metadata'] = asdict(corpus_metadata)
             
             corpus = create_corpus(corpus_metadata)
-            json_table = corpus.frame.to_json(orient="records")
-            doctype = corpus["doctype"].iloc[0]
-            selected_columns = process_corpus_data(corpus, doctype)
+
+        json_table = corpus.frame.to_json(orient="records")
+        doctype = corpus["doctype"].iloc[0]
+        selected_columns = process_corpus_data(corpus, doctype)
 
         return render_template(
             "table.html",
@@ -93,7 +72,7 @@ def create_app() -> Flask:
             res_table=selected_columns.to_html(table_id="results_table", border=0),
         )
 
-    @app.route("/search-form-action")
+    @app.route(f"{ROOT_PATH}/search-form-action")
     @cross_origin() 
     def choose_action() -> str:
         type_ = request.args.get("type_")
@@ -104,7 +83,7 @@ def create_app() -> Flask:
         else:
             raise ValueError(f"Unknown action: {type_}")
     
-    @app.route("/search_concordance")
+    @app.route(f"{ROOT_PATH}/search_concordance")
     @cross_origin()
     def search_concordances() -> str:
         
@@ -121,7 +100,7 @@ def create_app() -> Flask:
             resultframe=resultframe
         )
     
-    @app.route("/search_collocation")
+    @app.route(f"{ROOT_PATH}/search_collocation")
     @cross_origin()
     def search_collocations() -> str:
 
@@ -161,7 +140,6 @@ def read_csv(reference_path) -> pd.DataFrame:
     return reference
 
 def get_corpus_from_session() -> dh.Corpus:
-    """Create and return a corpus based on session data."""
     if 'urn_list' in session:
         corpus = dh.Corpus()
         corpus.extend_from_identifiers(session['urn_list'])
@@ -286,14 +264,12 @@ def create_corpus(corpus_metadata: CorpusMetadata) -> dh.Corpus:
 
 
 def speadsheet_to_corpus(file) -> dh.Corpus:
-    uploaded_file = file.get('spreadsheet')
     
-    if uploaded_file.filename.endswith('.csv'):
-        df = pd.read_csv(uploaded_file)
+    if file.filename.endswith('.csv'):
+        df = pd.read_csv(file)
 
-    elif uploaded_file.filename.endswith('.xls') or uploaded_file.filename.endswith('.xlsx'):
-        df = pd.read_excel(uploaded_file)
-
+    elif file.filename.endswith('.xls') or file.filename.endswith('.xlsx'):
+        df = pd.read_excel(file)
     urn_list = df["urn"].dropna().tolist() 
     
     return urn_list_to_corpus(tuple(urn_list))
