@@ -2,8 +2,11 @@ from functools import lru_cache
 from flask import Flask, render_template, request, session
 from dataclasses import dataclass, asdict
 import dhlab as dh
+import dhlab.api.dhlab_api as dhlab_api
+import dhlab.text.conc_coll as cc
 import pandas as pd
 from flask_cors import cross_origin
+from flask_cors import CORS
 import dhlab.text.conc_coll as conc_coll
 import jinja_partials
 from typing import Self
@@ -26,8 +29,7 @@ def create_app() -> Flask:
     static_root_path = Path(__file__).parent / "static"
     app.wsgi_app = WhiteNoise(app.wsgi_app, root=static_root_path)
 
-    
-    @app.route(f"/{ROOT_PATH}/")
+    @app.route(f"{ROOT_PATH}/")
     @cross_origin() 
     def index() -> str:
         return render_template(
@@ -64,7 +66,7 @@ def create_app() -> Flask:
             
             corpus = create_corpus(corpus_metadata)
 
-        json_table = corpus.frame.to_json(orient="records")
+        json_table = corpus.to_json(orient="records")
         doctype = corpus["doctype"].iloc[0]
         selected_columns = process_corpus_data(corpus, doctype)
 
@@ -89,11 +91,12 @@ def create_app() -> Flask:
     @cross_origin()
     def search_concordances() -> str:
         
-        corpus = get_corpus_from_session() #Retrieve corpus metadata from session
+        corpus = get_corpus_from_session()
 
         query = request.args.get("search")
         window = int(request.args.get("window", 20))
-        concordances = conc_coll.Concordance(corpus, query, limit=10, window=window)
+        #concordances = conc_coll.Concordance(corpus, query, limit=10, window=window)
+        concordances = cc.Concordance(corpus, query, limit=10, window=window)
 
         resultframe = process_concordance_results(concordances, corpus)
         
@@ -116,8 +119,8 @@ def create_app() -> Flask:
         reference_path = f"reference/{reference_corp}"
         reference = read_csv(reference_path)
         
-        coll = corpus.coll(words=words, before=int(words_before), after=int(words_after), samplesize=1000, reference=reference)
-
+        #coll = corpus.coll(words=words, before=int(words_before), after=int(words_after), samplesize=1000, reference=reference)
+        coll = cc.Collocations(corpus["urn"], words=words, before=int(words_before), after=int(words_after), samplesize=1000, reference=reference)
         coll_selected = coll.frame.sort_values(ascending=False, by=sorting_method)
         resultframe = coll_selected.head(int(max_coll))
 
@@ -169,7 +172,7 @@ def process_concordance_results(concordances, corpus):
 
     return pd.merge(
         concordances.frame, 
-        corpus.frame, 
+        corpus, 
         on="urn", 
         how="left"
     ).assign(
@@ -245,7 +248,7 @@ class CorpusMetadata:
 
 @lru_cache
 def create_corpus(corpus_metadata: CorpusMetadata) -> dh.Corpus:
-    dh_corpus_object = dh.Corpus(
+    dh_corpus_object = dhlab_api.document_corpus(
         doctype=corpus_metadata.document_type,
         author=corpus_metadata.author,
         freetext=None,
@@ -258,8 +261,7 @@ def create_corpus(corpus_metadata: CorpusMetadata) -> dh.Corpus:
         subject=corpus_metadata.key_words,
         lang=corpus_metadata.language,
         limit=corpus_metadata.num_docs,
-        order_by=corpus_metadata.search_type,
-        allow_duplicates=False,
+        order_by=corpus_metadata.search_type
     )
 
     return dh_corpus_object
@@ -350,7 +352,7 @@ REFERENCES = {
 
 
 def process_corpus_data(corpus: dh.Corpus, doctype: str) -> pd.DataFrame:
-    return corpus.frame[CORPUS_COLUMNS[doctype]]
+    return corpus[CORPUS_COLUMNS[doctype]]
 
 
 app = create_app()

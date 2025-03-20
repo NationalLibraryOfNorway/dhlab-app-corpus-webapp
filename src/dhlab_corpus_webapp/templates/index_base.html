@@ -55,7 +55,7 @@
 
     <div id="choose-action" name="action"> 
         <label for="corpus-action" class="corpus-action-label">  <br> Lag konkordanser eller kollokasjoner:</label>
-        <select name="type_" hx-get="/search-form-action" hx-target="#results-field"> <!--sender forespørsel til Flask-->
+        <select name="type_" hx-get="/search-form-action" hx-target="#results-field" > <!--sender forespørsel til Flask-->
             <option value="" disabled selected hidden>Valg...</option>
             <option value="search-collocation">Søk etter kollokasjoner</option>
             <option value="search-concordance">Søk etter konkordanser</option>
