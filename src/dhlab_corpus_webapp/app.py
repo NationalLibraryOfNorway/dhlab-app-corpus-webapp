@@ -222,6 +222,7 @@ class CorpusMetadata:
     words_or_phrases: str | None
     key_words: str | None
     dewey: str | None
+    subject: str | None
     from_year: str | None
     to_year: str | None
     search_type: str
@@ -238,6 +239,7 @@ class CorpusMetadata:
             words_or_phrases=data.get("words_or_phrases"),
             key_words=data.get("key_words"),
             dewey=data.get("dewey"),
+            subject=data.get("subject"),
             from_year=data.get("from_year"),
             to_year=data.get("to_year"),
             search_type=data.get("search_type", "random"),
@@ -258,7 +260,7 @@ def create_corpus(corpus_metadata: CorpusMetadata) -> dh.Corpus:
         from_timestamp=None,
         title=corpus_metadata.title,
         ddk=corpus_metadata.dewey,
-        subject=corpus_metadata.key_words,
+        subject=corpus_metadata.subject,
         lang=corpus_metadata.language,
         limit=corpus_metadata.num_docs,
         order_by=corpus_metadata.search_type
