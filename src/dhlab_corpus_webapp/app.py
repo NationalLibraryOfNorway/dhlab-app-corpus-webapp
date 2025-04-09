@@ -25,7 +25,7 @@ def create_app() -> Flask:
     app = Flask(__name__)
     app.secret_key = "superhemmelig-noekkel"
     static_root_path = Path(__file__).parent / "static"
-    app.wsgi_app = WhiteNoise(app.wsgi_app, root=static_root_path)
+    app.wsgi_app = WhiteNoise(app.wsgi_app, root=static_root_path, prefix=ROOT_PATH)
 
     @app.route(f"{ROOT_PATH}/")
     @cross_origin() 
@@ -356,4 +356,4 @@ def process_corpus_data(corpus: dh.Corpus, doctype: str) -> pd.DataFrame:
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5002)
+    app.run(host="0.0.0.0", port=5009)
