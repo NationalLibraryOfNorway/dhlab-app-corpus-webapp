@@ -10,10 +10,8 @@
 
         <div id="search-type-selection">
             <label for="search-type" class="search-type-label">Dokumenttype:
-                <span class="help-tooltip">
-                    <ion-icon name="help-circle-outline" class="help-icon"></ion-icon>
-                    <span class="help-text">Følger Nasjonalbibliotekets digitale dokumenttyper.</span>
-                </span>
+                <i class="fas fa-question-circle help-icon" title="Følger Nasjonalbibliotekets digitale dokumenttyper."></i>
+
             </label>
             <select name="doc_type_selection" id="doc_type_selection_">
                 <option value="digibok">Digibok</option>
@@ -29,60 +27,42 @@
     <div id="search-type-language">
         <label for="search-type-language" >
             Språk:
-            <span class="help-tooltip">
-                <ion-icon name="help-circle-outline" class="help-icon"></ion-icon>
-                <span class="help-text">Velg språk fra listen.</span>
-            </span>
+            <i class="fas fa-question-circle help-icon" title="Velg språk fra listen."></i>
         </label>
         {% include 'langs.html' %}
     </div>
 
     <div id="search-type-author">
         <label for="name">Forfatter:
-            <span class="help-tooltip">
-                <ion-icon name="help-circle-outline" class="help-icon"></ion-icon>
-                <span class="help-text">Feltet blir kun tatt hensyn til for digibok.</span>
-            </span>
+            <i class="fas fa-question-circle help-icon" title="Feltet blir kun tatt hensyn til for digibok."></i>
         </label>
         <input type="text" id="author_" name="author" placeholder="Henrik Ibsen" />
     </div>
 
     <div id="search-type-title">
         <label for="name">Tittel:
-            <span class="help-tooltip">
-                <ion-icon name="help-circle-outline" class="help-icon"></ion-icon>
-                <span class="help-text">Søk etter titler. For aviser vil tittel matche avisnavnet.</span>
-            </span>
+            <i class="fas fa-question-circle help-icon" title="Søk etter titler. For aviser vil tittel matche avisnavnet."></i>
         </label>
         <input type="text" id="title" name="title" placeholder="Et dukkehjem" />
     </div>
 
     <div id="search-type-words-phrases">
         <label for="name">Ord eller fraser i teksten:
-            <span class="help-tooltip">
-                <ion-icon name="help-circle-outline" class="help-icon"></ion-icon>
-                <span class="help-text">Søketreff er uavhengig av stor og liten bokstav. <br> Du kan søke trunkert med "." <br> For eksempel vil <i>demokrat</i> returnere tekster som inneholder demokrati og demokratisk blant andre treff.</span>
-            </span>
+            <i class="fas fa-question-circle help-icon" title="Søketreff er uavhengig av stor og liten bokstav. <br> Du kan søke trunkert med ''.'' <br> For eksempel vil <i>demokrat</i> returnere tekster som inneholder demokrati og demokratisk blant andre treff."></i>
         </label>
         <input type="text" id="words_or_phrases" name="words_or_phrases" placeholder="Det vidunderlige" />
     </div>
 
     <div class="search-type-selection">
         <label for="subject">Emneord:
-            <span class="help-tooltip">
-                <ion-icon name="help-circle-outline" class="help-icon"></ion-icon>
-                <span class="help-text">For å matche på flere emner, skill mellom OR for alternativ og AND for å begrense. <br>Trunkert søk går også-  <br>for eksempel vil barne* matche barnebok og barnebøker.</span>
-            </span>
+            <i class="fas fa-question-circle help-icon" title="For å matche på flere emner, skill mellom OR for alternativ og AND for å begrense. "></i>
         </label>
         <input id="subject_" type="text" name="subject" />
     </div>
 
     <div class="search-type-selection">
             <label for="dewey">Dewey desimaltall:
-                <span class="help-tooltip">
-                    <ion-icon name="help-circle-outline" class="help-icon"></ion-icon>
-                    <span class="help-text">Input matcher et deweynummer. <br> For å matche en hel serie, føy til *. <br> Bruk OR for å kombinere: 364* OR 916* .</span>
-                </span>
+                <i class="fas fa-question-circle help-icon" title="Input matcher et deweynummer. <br> For å matche en hel serie, føy til *. <br> Bruk OR for å kombinere: 364* OR 916* ."></i>
             </label>
             <input id="dewey_" type="number" name="dewey" />
     </div>
@@ -98,8 +78,8 @@
         </div>
 
         <div id="search-type-num-docs">
-            <label for="num_docs">Maks antall, inntil 100 000:</label>
-            <input id="num_docs" type="number" name="num_docs" min="1" max="100000" value="100" />
+            <label for="num_docs">Maks antall, inntil 10 000:</label>
+            <input id="num_docs" type="number" name="num_docs" min="1" max="10000" value="100" />
         </div>
 
     </div>
