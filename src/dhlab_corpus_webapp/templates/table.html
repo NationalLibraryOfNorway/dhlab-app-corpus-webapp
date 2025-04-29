@@ -4,45 +4,11 @@
     </div>
 </div>
 
-<script>
-    new DataTable('#results_table', {
-        dom: 'frtipB',
-        buttons: [
-            {
-                extend: 'excel',
-                filename: 'korpus',
-                title: null,
-                exportOptions: {
-                    //columns: ':all'
-                    columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], //export all columns
-                }
-            },
-            {
-                extend: 'csv',
-                filename: 'korpus',
-                bom: true,
-                exportOptions: {
-                    //columns: ':all'
-                    columns: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17], //export all columns
-                }
-            }
-        ],
-        columnDefs: [
-            {
-                targets: [2, 3, 4, 10, 12], //columns to be visible
-                visible: true
-            },
-            {
-                targets: '_all', 
-                visible: false
-            }
-        ],
-        //Skroll ned automatisk til resultat
-        initComplete: function() {
-            document.querySelector('.datatable-container').scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'start' 
-            });
-        }
-    });
-</script>
+<summary>Vis korpustabell</summary>
+<div 
+    class="datatable-container"
+    id="corpus-table"
+    hx-on::after-swap="initializeDataTable(document.getElementById('results_table').value)"
+>
+</div>
+
