@@ -304,9 +304,6 @@ input, select {
 .submit-button {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--small-margin);
-    margin-bottom: var(--small-margin);
-    margin-top: var(--small-margin);
     width: 100%;
 }
 
