@@ -236,6 +236,7 @@ input, select {
     display: flex;
     align-items: center;
     gap: 1rem;
+    align-items: flex-end; /* optional: aligns inputs and labels neatly */
   }
 
   .search-button {
@@ -557,8 +558,24 @@ input[type="checkbox"] {
     font-weight: bold;
 }
 
-.search-coll form {
+#search-settings-coll {
+    overflow-x: hidden;
+    overflow-y: auto;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    padding: 5px 10px;
+    background-color: var(--background-body);
+    border-right: solid 1px var(--border);
+    transition: width 0.5s;
+    z-index: 2;
+  }
+
+  #search-form {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 1rem; /* or use your existing var(--small-margin) */
+    align-items: flex-end; /* optional: aligns inputs and labels neatly */
 }
+

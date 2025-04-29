@@ -9,7 +9,7 @@
             <p>Med denne appen kan man lage et <a href="https://www.nb.no/dh-lab/">DH-LAB</a>-korpus av tekster fra <a href="https://www.nb.no/dh-lab/">Nasjonalbibliotekets</a> samling.</p>
 
             <details>
-                <summary>Hvordan fungerer korpusappen?</summary>
+                <summary>Hvordan fungerer appen?</summary>
                 <p>Et DHLAB-korpus gjør at man kan gjøre kvantitative analyser av tekstsamlinger som inkluderer opphavsrettsbeskyttet materiale. I stedet for å laste ned tekstene, får man en kode for hver tekst. Denne kan så lastes opp i andre DHLAB-apper for å gjøre analyser på den teksten.</p>
             <p>DHLAB tilbyr følgende ressurstyper: <strong>Digibok:</strong> Bøker fra Nasjonalbiblioteket <strong>Digavis:</strong> Aviser fra Nasjonalbiblioteket <strong> Digitidsskrift:</strong> Tidsskrift fra Nasjonalbiblioteket <strong>Digistorting:</strong> Stortingsdokumenter i NBs samling Digimanus: Brev og manuskripter <strong> Kudos:</strong> <a href= "https://kudos.dfo.no/"> Kunnskapsdokumenter i offentlig sektor</a>  <strong>Nettavis:</strong> Tekster fra nettaviser</p>
             </details>
@@ -19,33 +19,21 @@
                 <div id="form-feedback"></div>
             </div>
 
-            <div id="corpus-container">
-                <div id="corpus-method-selection">
-                    <label for="corpus-method" class="corpus-method-label">Metode for korpus:</label>
-                    <select name="type_" hx-get="corpus-method" hx-target="#corpus-selection" hx-trigger="change, load" hx-request='{"noHeaders": true}'> 
-                        <option value="build_corpus">Bygg korpus basert på valg</option>
-                        <option value="upload_corpus">Last opp korpus fra excel ark</option>
-                    </select>
-                </div>
-        
-    <div id="loading">
-        <div>Bygger korpus</div>
-        <span class="loader"></span>
-        </div>
-    <div id="corpus-selection" name="corpus-selection">
+            <div id="choose-action">
+                <label for="choose-action" class="corpus-method-label">Valg:</label>
+                <select name="type_" hx-get="choose-action" hx-target="#action-field" hx-trigger="change, load" hx-request='{"noHeaders": true}'> 
+                    <option value="build_corpus">Bygg korpus basert på valg</option>
+                    <option value="make_conc">Lag konkordanser</option>
+                    <option value="make_coll">Lag kollokasjoner</option>
+                </select>
+            </div>
 
-        <p> </p>
-    </div>
+            <div id="action-field"></div>
 
         <div id="corpus-results"></div>
      
         <details class="corpus-details">
-            <summary>Vis korpustabell</summary>
-            <div 
-                class="datatable-container"
-                id="corpus-table"
-                hx-on::after-swap="initializeDataTable(document.getElementById('results_table').value)"
-            >
+
                 {% include 'table.html' %}
             </div>
         </details>
@@ -53,14 +41,6 @@
 
     <br>
 
-    <div id="choose-action" name="action"> 
-        <label for="corpus-action" class="corpus-action-label">  <br> Lag konkordanser eller kollokasjoner:</label>
-        <select name="type_" hx-get="search-form-action" hx-target="#results-field" > <!--sender forespørsel til Flask-->
-            <option value="" disabled selected hidden>Valg...</option>
-            <option value="search-collocation">Søk etter kollokasjoner</option>
-            <option value="search-concordance">Søk etter konkordanser</option>
-        </select>
-    </div>
     
 
     <div id="results-field"></div>

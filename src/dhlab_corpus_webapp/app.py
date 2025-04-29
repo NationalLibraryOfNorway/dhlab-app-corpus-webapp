@@ -6,13 +6,12 @@ import dhlab.api.dhlab_api as dhlab_api
 import dhlab.text.conc_coll as cc
 import pandas as pd
 from flask_cors import cross_origin
-from flask_cors import CORS
 import dhlab.text.conc_coll as conc_coll
 import jinja_partials
 from typing import Self
 from wordcloud import WordCloud
 import matplotlib
-matplotlib.use("agg")  # We must set the backend before importing pyplot
+matplotlib.use("agg")
 import matplotlib.pyplot as plt
 import io
 import base64
@@ -38,7 +37,20 @@ def create_app() -> Flask:
             app_name="Korpus | Konkordanser | Kollokasjoner",
         )
     
-    @app.route(f"{ROOT_PATH}/corpus-method", methods=['GET', 'POST'])
+    @app.route(f"{ROOT_PATH}/choose-action", methods=['GET'])
+    @cross_origin() 
+    def choose_action():
+        selected_option = request.args.get('type_')
+        if selected_option == 'build_corpus':
+            return render_template('corpus_builder.html')
+        elif selected_option == 'make_coll':
+            return render_template('search-collocation.html')
+        elif selected_option == 'make_conc':
+            return render_template('search-concordance.html')
+        else:
+            return "Invalid option", 400
+    
+    """@app.route(f"{ROOT_PATH}/corpus-method", methods=['GET', 'POST'])
     @cross_origin() 
     def corpus_method() -> str:
         type_ = request.args.get("type_")
@@ -47,7 +59,7 @@ def create_app() -> Flask:
         elif type_ == "upload_corpus":
             return render_template("corpus_uploader.html")
         else:
-            raise ValueError(f"Unknown corpus method: {type_}")
+            raise ValueError(f"Unknown corpus method: {type_}")"""
 
     @app.route(f"{ROOT_PATH}/submit-form", methods=['GET', 'POST'])
     @cross_origin() 
@@ -76,7 +88,7 @@ def create_app() -> Flask:
             res_table=selected_columns.to_html(table_id="results_table", border=0),
         )
 
-    @app.route(f"{ROOT_PATH}/search-form-action")
+    """@app.route(f"{ROOT_PATH}/search-form-action")
     @cross_origin() 
     def choose_action() -> str:
         type_ = request.args.get("type_")
@@ -85,12 +97,12 @@ def create_app() -> Flask:
         if type_ == "search-concordance":
             return render_template("search-concordance.html")
         else:
-            raise ValueError(f"Unknown action: {type_}")
+            raise ValueError(f"Unknown action: {type_}")"""
     
     @app.route(f"{ROOT_PATH}/search_concordance")
     @cross_origin()
     def search_concordances() -> str:
-        
+
         corpus = get_corpus_from_session()
 
         query = request.args.get("search")
@@ -105,15 +117,22 @@ def create_app() -> Flask:
             resultframe=resultframe
         )
     
-    @app.route(f"{ROOT_PATH}/search_collocation")
+    @app.route(f"{ROOT_PATH}/search_collocation", methods=["POST"])
     @cross_origin()
     def search_collocations() -> str:
 
-        corpus = get_corpus_from_session()
+        uploaded_file = request.files['spreadsheet']
+
+        corpus = spreadsheet_to_corpus(uploaded_file)
+
+        session['urn_list'] = corpus.frame['urn'].tolist()
+        #corpus = get_corpus_from_session()
+
+        
         words = request.args.get("search")
         words_before = request.args.get("words_before", 10)
         words_after = request.args.get("words_after", 10)
-        reference_corp = request.args.get("ref_korpus", 10)
+        reference_corp = request.args.get("ref_korpus")
         max_coll = request.args.get("max_coll")
         sorting_method = request.args.get("sorting_method")
         reference_path = f"reference/{reference_corp}"
@@ -122,6 +141,7 @@ def create_app() -> Flask:
         #coll = corpus.coll(words=words, before=int(words_before), after=int(words_after), samplesize=1000, reference=reference)
         coll = cc.Collocations(corpus["urn"], words=words, before=int(words_before), after=int(words_after), samplesize=1000, reference=reference)
         coll_selected = coll.frame.sort_values(ascending=False, by=sorting_method)
+        print(coll_selected)
         resultframe = coll_selected.head(int(max_coll))
 
         wordcloud_image = make_wordcloud(resultframe)
@@ -135,6 +155,7 @@ def create_app() -> Flask:
     return app
 
 def read_csv(reference_path) -> pd.DataFrame:
+    print(reference_path)
     try:
         reference_df = pd.read_csv(reference_path)
         reference_df.columns = ["word", "freq"]
@@ -269,7 +290,7 @@ def create_corpus(corpus_metadata: CorpusMetadata) -> dh.Corpus:
     return dh_corpus_object
 
 
-def speadsheet_to_corpus(file) -> dh.Corpus:
+def spreadsheet_to_corpus(file) -> dh.Corpus:
     
     if file.filename.endswith('.csv'):
         df = pd.read_csv(file)

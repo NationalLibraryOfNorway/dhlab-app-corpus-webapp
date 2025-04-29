@@ -1,13 +1,18 @@
-<div class="search-coll">
+<div class="search-container">
+    <!--Lag en meny her hvor du kan velge om du vil laste opp et gammelt korpus eller bruke korpuset du nettop lagde-->
     <form
         id="search-form"
-        hx-get="search_collocation"
+        hx-post="search_collocation"
         hx-trigger="clicked, change, submit"
         hx-target="#collocation-results-container"
         hx-swap="innerHTML"
         hx-indicator="#loading-text"
         class="search-form-horizontal"
+        enctype="multipart/form-data"
     >
+
+        <label for="image">Last opp et korpus som regneark</label>
+        <input type="file" id="spreadsheet" name="spreadsheet" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" />
 
         <div class="form-group">
             <label for="search">Skriv inn basisord her:</label>
@@ -72,9 +77,9 @@
                 <option value="counts">Råfrekvens</option>
             </select>
         </div>
-        
-        <div class="button-1">
-            <button class="btn" type="submit" > Søk</button>
+
+        <div class="submit-button">
+            <button class="btn" type="submit" > Søk kollokasjoner</button>
         </div>
     </form>
 </div>
