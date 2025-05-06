@@ -11,6 +11,7 @@ import jinja_partials
 from typing import Self
 from wordcloud import WordCloud
 import matplotlib
+
 matplotlib.use("agg")
 import matplotlib.pyplot as plt
 import io
@@ -22,6 +23,7 @@ from pathlib import Path
 
 ROOT_PATH = os.environ.get("ROOT_PATH", "")
 
+
 def create_app() -> Flask:
     app = Flask(__name__)
     app.secret_key = "superhemmelig-noekkel"
@@ -29,53 +31,42 @@ def create_app() -> Flask:
     app.wsgi_app = WhiteNoise(app.wsgi_app, root=static_root_path, prefix=ROOT_PATH)
 
     @app.route(f"{ROOT_PATH}/")
-    @cross_origin() 
+    @cross_origin()
     def index() -> str:
         return render_template(
             "index_base.html",
             app_title="Korpus | Konkordanser | Kollokasjoner",
             app_name="Korpus | Konkordanser | Kollokasjoner",
         )
-    
-    @app.route(f"{ROOT_PATH}/choose-action", methods=['GET'])
-    @cross_origin() 
+
+    @app.route(f"{ROOT_PATH}/choose-action", methods=["GET"])
+    @cross_origin()
     def choose_action():
-        selected_option = request.args.get('type_')
-        if selected_option == 'build_corpus':
-            return render_template('corpus_builder.html')
-        elif selected_option == 'make_coll':
-            return render_template('search-collocation.html')
-        elif selected_option == 'make_conc':
-            return render_template('search-concordance.html')
+        selected_option = request.args.get("type_")
+        if selected_option == "build_corpus":
+            return render_template("corpus_builder.html")
+        elif selected_option == "make_coll":
+            return render_template("search-collocation.html")
+        elif selected_option == "make_conc":
+            return render_template("search-concordance.html")
         else:
             return "Invalid option", 400
-    
-    """@app.route(f"{ROOT_PATH}/corpus-method", methods=['GET', 'POST'])
-    @cross_origin() 
-    def corpus_method() -> str:
-        type_ = request.args.get("type_")
-        if type_ == "build_corpus":
-            return render_template("corpus_builder.html")
-        elif type_ == "upload_corpus":
-            return render_template("corpus_uploader.html")
-        else:
-            raise ValueError(f"Unknown corpus method: {type_}")"""
 
-    @app.route(f"{ROOT_PATH}/submit-form", methods=['GET', 'POST'])
-    @cross_origin() 
+    @app.route(f"{ROOT_PATH}/submit-form", methods=["GET", "POST"])
+    @cross_origin()
     def make_corpus() -> str:
         if request.files:
-            uploaded_file = request.files['spreadsheet']
+            uploaded_file = request.files["spreadsheet"]
 
-            corpus = speadsheet_to_corpus(uploaded_file)
+            corpus = spreadsheet_to_corpus(uploaded_file)
 
-            session['urn_list'] = corpus.frame['urn'].tolist()
+            session["urn_list"] = corpus.frame["urn"].tolist()
 
         else:
             corpus_metadata = CorpusMetadata.from_dict(request.form)
-            
-            session['corpus_metadata'] = asdict(corpus_metadata)
-            
+
+            session["corpus_metadata"] = asdict(corpus_metadata)
+
             corpus = create_corpus(corpus_metadata)
 
         json_table = corpus.to_json(orient="records")
@@ -88,71 +79,71 @@ def create_app() -> Flask:
             res_table=selected_columns.to_html(table_id="results_table", border=0),
         )
 
-    """@app.route(f"{ROOT_PATH}/search-form-action")
-    @cross_origin() 
-    def choose_action() -> str:
-        type_ = request.args.get("type_")
-        if type_ == "search-collocation":
-            return render_template("search-collocation.html")
-        if type_ == "search-concordance":
-            return render_template("search-concordance.html")
-        else:
-            raise ValueError(f"Unknown action: {type_}")"""
-    
-    @app.route(f"{ROOT_PATH}/search_concordance")
+    @app.route(f"{ROOT_PATH}/search_concordance", methods=["POST"])
     @cross_origin()
     def search_concordances() -> str:
 
-        corpus = get_corpus_from_session()
+        uploaded_file = request.files["spreadsheet"]
+        corpus = spreadsheet_to_corpus(uploaded_file)
 
-        query = request.args.get("search")
+        query = request.form.get("search")
+
         window = int(request.args.get("window", 20))
-        #concordances = conc_coll.Concordance(corpus, query, limit=10, window=window)
-        concordances = cc.Concordance(corpus, query, limit=10, window=window)
 
-        resultframe = process_concordance_results(concordances, corpus)
-        
+        concordances = cc.Concordance(corpus, query, limit=20, window=window)
+
+        resultframe = process_concordance_results(concordances, corpus.frame)
+
         return jinja_partials.render_partial(
-            "concordance_results.html",
-            resultframe=resultframe
+            "concordance_results.html", resultframe=resultframe
         )
-    
+
     @app.route(f"{ROOT_PATH}/search_collocation", methods=["POST"])
     @cross_origin()
     def search_collocations() -> str:
-
-        uploaded_file = request.files['spreadsheet']
+        uploaded_file = request.files["spreadsheet"]
 
         corpus = spreadsheet_to_corpus(uploaded_file)
 
-        session['urn_list'] = corpus.frame['urn'].tolist()
-        #corpus = get_corpus_from_session()
+        session["urn_list"] = corpus.frame["urn"].tolist()
+        # corpus = get_corpus_from_session()
 
-        
-        words = request.args.get("search")
-        words_before = request.args.get("words_before", 10)
-        words_after = request.args.get("words_after", 10)
-        reference_corp = request.args.get("ref_korpus")
-        max_coll = request.args.get("max_coll")
-        sorting_method = request.args.get("sorting_method")
+        words = request.form.get("search")
+        words_before = request.form.get("words_before", 10)
+        words_after = request.form.get("words_after", 10)
+        reference_corp = request.form.get("ref_korpus")
+        max_coll = request.form.get("max_coll")
+        sorting_method = request.form.get("sorting_method")
+
         reference_path = f"reference/{reference_corp}"
         reference = read_csv(reference_path)
-        
-        #coll = corpus.coll(words=words, before=int(words_before), after=int(words_after), samplesize=1000, reference=reference)
-        coll = cc.Collocations(corpus["urn"], words=words, before=int(words_before), after=int(words_after), samplesize=1000, reference=reference)
-        coll_selected = coll.frame.sort_values(ascending=False, by=sorting_method)
-        print(coll_selected)
+
+        # coll = corpus.coll(words=words, before=int(words_before), after=int(words_after), samplesize=1000, reference=reference)
+        coll = cc.Collocations(
+            corpus["urn"],
+            words=words,
+            before=int(words_before),
+            after=int(words_after),
+            samplesize=1000,
+            reference=reference,
+        )
+        coll_selected = coll.frame.dropna().sort_values(
+            ascending=False, by=sorting_method
+        )
+
         resultframe = coll_selected.head(int(max_coll))
 
         wordcloud_image = make_wordcloud(resultframe)
-        
+
         return render_template(
             "collocation_results.html",
             resultframe=resultframe,
-            wordcloud_image=wordcloud_image
+            wordcloud_image=wordcloud_image,
+            order_by=sorting_method,
         )
 
     return app
+
 
 def read_csv(reference_path) -> pd.DataFrame:
     print(reference_path)
@@ -161,78 +152,75 @@ def read_csv(reference_path) -> pd.DataFrame:
         reference_df.columns = ["word", "freq"]
         reference = reference_df.set_index("word")
     except:
-        print("Statisk referansekorpus kunne ikke hentes. Se på parametrene for korpuset eller prøv igjen.")
+        print(
+            "Statisk referansekorpus kunne ikke hentes. Se på parametrene for korpuset eller prøv igjen."
+        )
 
     return reference
 
+
 def get_corpus_from_session() -> dh.Corpus:
-    if 'urn_list' in session:
+    if "urn_list" in session:
         corpus = dh.Corpus()
-        corpus.extend_from_identifiers(session['urn_list'])
-    elif 'corpus_metadata' in session:
-        corpus_metadata = CorpusMetadata(**session['corpus_metadata'])
+        corpus.extend_from_identifiers(session["urn_list"])
+    elif "corpus_metadata" in session:
+        corpus_metadata = CorpusMetadata(**session["corpus_metadata"])
         corpus = create_corpus(corpus_metadata)
     else:
         raise ValueError("No corpus data found in session")
-    
+
     return corpus
+
 
 def process_concordance_results(concordances, corpus):
     def get_timeformat(df: pd.DataFrame) -> list[str]:
         return [
-            "%Y-%m-%d" if doctype == "digavis" else "%Y"
-            for doctype in df["doctype"]
+            "%Y-%m-%d" if doctype == "digavis" else "%Y" for doctype in df["doctype"]
         ]
 
     def get_timestamp(df: pd.DataFrame) -> pd.Series:
         return pd.to_datetime(
-            df["timestamp"].astype(str), 
-            format="%Y%m%d", 
-            errors="coerce"
-        ).fillna(pd.Timestamp('1900-01-01'))
+            df["timestamp"].astype(str), format="%Y%m%d", errors="coerce"
+        ).fillna(pd.Timestamp("1900-01-01"))
 
-    return pd.merge(
-        concordances.frame, 
-        corpus, 
-        on="urn", 
-        how="left"
-    ).assign(
-        timeformat=get_timeformat,
-        timestamp=get_timestamp
-    )[[
-        "title",
-        "authors",
-        "year",
-        "timestamp",
-        "timeformat",
-        "concordance",
-        "link",
-    ]]
+    return pd.merge(concordances.frame, corpus, on="urn", how="left").assign(
+        timeformat=get_timeformat, timestamp=get_timestamp
+    )[
+        [
+            "title",
+            "authors",
+            "year",
+            "timestamp",
+            "timeformat",
+            "concordance",
+            "link",
+        ]
+    ]
 
-def make_wordcloud(df, width=800, height=400, background_color='white'): 
 
+def make_wordcloud(df, width=800, height=400, background_color="white"):
     index_series = df.index.to_series()
-    words = index_series.str.replace(r'\s+\d+$', '', regex=True)
-    word_freq = dict(zip(words, df['relevance']))
-    
-    wc = WordCloud(width=width, 
-                  height=height, 
-                  background_color=background_color,
-                  max_words=100)
-    
+    words = index_series.str.replace(r"\s+\d+$", "", regex=True)
+    word_freq = dict(zip(words, df["relevance"]))
+
+    wc = WordCloud(
+        width=width, height=height, background_color=background_color, max_words=100
+    )
+
     wc.generate_from_frequencies(word_freq)
-    
+
     img = io.BytesIO()
     plt.figure(figsize=(10, 5))
-    plt.imshow(wc, interpolation='bilinear')
-    plt.axis('off')
-    plt.savefig(img, format='png', bbox_inches='tight', pad_inches=0)
+    plt.imshow(wc, interpolation="bilinear")
+    plt.axis("off")
+    plt.savefig(img, format="png", bbox_inches="tight", pad_inches=0)
     plt.close()
-    
+
     img.seek(0)
     img_str = base64.b64encode(img.getvalue()).decode()
-    
+
     return img_str
+
 
 @dataclass(frozen=True)
 class CorpusMetadata:
@@ -284,21 +272,20 @@ def create_corpus(corpus_metadata: CorpusMetadata) -> dh.Corpus:
         subject=corpus_metadata.subject,
         lang=corpus_metadata.language,
         limit=corpus_metadata.num_docs,
-        order_by=corpus_metadata.search_type
+        order_by=corpus_metadata.search_type,
     )
 
     return dh_corpus_object
 
 
 def spreadsheet_to_corpus(file) -> dh.Corpus:
-    
-    if file.filename.endswith('.csv'):
+    if file.filename.endswith(".csv"):
         df = pd.read_csv(file)
 
-    elif file.filename.endswith('.xls') or file.filename.endswith('.xlsx'):
+    elif file.filename.endswith(".xls") or file.filename.endswith(".xlsx"):
         df = pd.read_excel(file)
-    urn_list = df["urn"].dropna().tolist() 
-    
+    urn_list = df["urn"].dropna().tolist()
+
     return urn_list_to_corpus(tuple(urn_list))
 
 
@@ -307,6 +294,7 @@ def urn_list_to_corpus(urn_list: tuple[str]) -> dh.Corpus:
     corpus = dh.Corpus()
     corpus.extend_from_identifiers(list(urn_list))
     return corpus
+
 
 CORPUS_COLUMNS: dict[str, list[str]] = {
     "digibok": [
@@ -370,7 +358,7 @@ REFERENCES = {
     "bokmål (1875-1920)": "reference/nob_1875_1920.csv",
     "nynorsk (1875-1920)": "reference/nno_1875_1920.csv",
     "tidlig dansk-norsk/bokmål (før 1875)": "reference/nob_1800_1875.csv",
-    "tidlig nynorsk (før 1875)": "reference/nob_1848_1875.csv"
+    "tidlig nynorsk (før 1875)": "reference/nob_1848_1875.csv",
 }
 
 
