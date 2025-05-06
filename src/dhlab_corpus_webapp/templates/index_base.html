@@ -24,6 +24,8 @@
                 <div id="form-feedback"></div>
             </div>
 
+            <div id="corpus-results"></div>
+
             <div id="choose-action">
                 <label for="choose-action" class="corpus-method-label">Valg:</label>
                 <select name="type_" hx-get="choose-action" hx-target="#action-field" hx-trigger="change, load" hx-request='{"noHeaders": true}'> 
@@ -35,20 +37,11 @@
 
             <div id="action-field"></div>
 
-        <div id="corpus-results"></div>
+        
      
-        <details class="corpus-details">
-
-                {% include 'table.html' %}
-            </div>
-        </details>
-
-
     <br>
 
-    
-
-    
+    <div id="results-field"></div>
 
     </main>
     {% endblock content %}

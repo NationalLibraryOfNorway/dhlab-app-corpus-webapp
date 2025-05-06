@@ -30,23 +30,21 @@
   </div>
 </div>
 
+<!-- Store the order_by value in a hidden input -->
+<input type="hidden" id="order_by" value="{{ order_by }}">
+
 <script>
-    new DataTable('#results_table_coll', {
-      dom: 'rtipB',
-      responsive: true,
-      buttons: [
-          {
-              extend: 'excel',
-              filename: 'kollokasjoner'
-          }
-      ],
-        //Automatisk scrolling til resultat
-      initComplete: function() {
-        document.querySelector('.datatable-container').scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'start' 
-        });
-      }
-    });
-  </script>
+
+  new DataTable('#results_table_coll', {
+    order: [1],
+    dom: 'rtipB',
+    responsive: true,
+    buttons: [
+        {
+            extend: 'excel',
+            filename: 'kollokasjoner'
+        }
+    ]
+  });
+</script>
 

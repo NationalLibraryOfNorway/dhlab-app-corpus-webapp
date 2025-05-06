@@ -1,8 +1,7 @@
 <form 
     id="search-form-corpus" 
     hx-post="submit-form"
-    hx-target="#results-field" 
-    hx-swap="innerHTML" 
+    hx-target="#corpus-results" 
     hx-trigger="submit" 
     hx-indicator="#loading"
 >
@@ -89,7 +88,6 @@
 
     <div class="make-corpus"> 
 
-
     <div class="submit-button">
         <div id="button-1">
             <input type="submit" name="update-search" value="Bygg korpus">
@@ -107,8 +105,6 @@
     </div>
 
 </form>
-
-
 
 <!--Dropdown menu script-->
 <script src="disable_enable_fields.js"></script>
