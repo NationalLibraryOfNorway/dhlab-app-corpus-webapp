@@ -1,4 +1,29 @@
-<div class="scrollable-table-container">
-        {{res_table | safe}}
-</div>
+<div class="datatable-container">
+        <div class="scrollable-table-container">
+        
+            {{res_table | safe}}
+        
+        
+        </div>
+        </div>
+        
+        <script>
+            new DataTable('#results_table', {
+                dom: 'frtipB',
+                buttons: [
+                    {
+                        extend: 'excel',
+                        filename: 'korpus',
+                        title: null
+                    },
+                    {
+                        extend: 'csv',
+                        filename: 'korpus', 
+                        bom: true, 
+        
+                    }
+                ]
+            });
+        </script>
+        
 

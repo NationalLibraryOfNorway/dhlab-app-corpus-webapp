@@ -69,6 +69,7 @@ def create_app() -> Flask:
         json_table = corpus.to_json(orient="records")
         doctype = corpus["doctype"].iloc[0]
         selected_columns = process_corpus_data(corpus, doctype)
+        selected_columns = selected_columns
 
         return render_template(
             "table.html",
@@ -80,9 +81,24 @@ def create_app() -> Flask:
     @cross_origin() 
     def choose_action() -> str:
         type_ = request.args.get("type_")
-        if type_ == "search-collocation":
+
+        if type_ == "show-corpus-table":
+            corpus = get_corpus_from_session()
+
+            json_table = corpus.frame.to_json(orient="records")
+            doctype = corpus["doctype"].iloc[0]
+            selected_columns = process_corpus_data(corpus, doctype)
+            selected_columns = selected_columns.frame
+
+            return render_template(
+            "table.html",
+            json_table=json_table,
+            res_table=selected_columns.to_html(table_id="results_table", border=0),
+        )
+            #return render_template("table.html")
+        elif type_ == "search-collocation":
             return render_template("search-collocation.html")
-        if type_ == "search-concordance":
+        elif type_ == "search-concordance":
             return render_template("search-concordance.html")
         else:
             raise ValueError(f"Unknown action: {type_}")
@@ -172,7 +188,7 @@ def process_concordance_results(concordances, corpus):
 
     return pd.merge(
         concordances.frame, 
-        corpus, 
+        corpus.frame, 
         on="urn", 
         how="left"
     ).assign(
