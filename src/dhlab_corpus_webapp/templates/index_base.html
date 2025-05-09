@@ -24,10 +24,8 @@
                 <div id="form-feedback"></div>
             </div>
 
-            <div id="corpus-results"></div>
-
             <div id="choose-action">
-                <label for="choose-action" class="corpus-method-label">Valg:</label>
+                <label for="choose-action" class="corpus-method-label">Velg hva du vil gjøre:</label>
                 <select name="type_" hx-get="choose-action" hx-target="#action-field" hx-trigger="change, load" hx-request='{"noHeaders": true}'> 
                     <option value="build_corpus">Bygg korpus basert på valg</option>
                     <option value="make_conc">Lag konkordanser</option>
@@ -37,7 +35,7 @@
 
             <div id="action-field"></div>
 
-        
+    <div id="corpus-results"></div>   
      
     <br>
 
