@@ -1,5 +1,4 @@
-function initializeDataTable(filename) { 
-    new DataTable('#results_table', {
+new DataTable('#results_table', {
         dom: 'frtipB',
         responsive: true,
         buttons: [
@@ -16,7 +15,6 @@ function initializeDataTable(filename) {
             }
         ]
     });
-}
 
 
 
