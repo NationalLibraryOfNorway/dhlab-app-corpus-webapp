@@ -49,6 +49,26 @@ h1 {
     color: var(--nb-secondary-color);
 }
 
+.details-blue {
+    background-color: unset !important; /* Remove the beige background */
+
+}
+
+.details-blue > summary{
+    background-color: var(--nb-blue) !important;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    max-width: 15%; /* Set the width to less than half the page */
+}
+
+.details-content {
+    padding: 10px;
+    background-color: var(--background-alt);
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
 
 input, select {
     font-family: var(--nb-font-family-secondary);
