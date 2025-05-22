@@ -87,13 +87,13 @@ def create_app() -> Flask:
 
             json_table = corpus.frame.to_json(orient="records")
             doctype = corpus["doctype"].iloc[0]
-            selected_columns = process_corpus_data(corpus, doctype)
-            selected_columns = selected_columns.frame
+            #selected_columns = process_corpus_data(corpus, doctype)
+            #selected_columns = selected_columns.frame
 
             return render_template(
             "table.html",
             json_table=json_table,
-            res_table=selected_columns.to_html(table_id="results_table", border=0),
+            res_table=corpus.frame.to_html(table_id="results_table", border=0),
         )
             #return render_template("table.html")
         elif type_ == "search-collocation":
