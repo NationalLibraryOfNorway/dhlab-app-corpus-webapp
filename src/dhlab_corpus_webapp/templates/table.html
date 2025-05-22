@@ -1,39 +1,29 @@
 <div class="datatable-container">
-    <div class="scrollable-table-container">
-        {{ res_table | safe }}
-    </div>
-</div>
+        <div class="scrollable-table-container">
+        
+            {{res_table | safe}}
+        
+        
+        </div>
+        </div>
+        
+        <script>
+            new DataTable('#results_table', {
+                dom: 'frtipB',
+                buttons: [
+                    {
+                        extend: 'excel',
+                        filename: 'korpus',
+                        title: null
+                    },
+                    {
+                        extend: 'csv',
+                        filename: 'korpus', 
+                        bom: true, 
+        
+                    }
+                ]
+            });
+        </script>
+        
 
-<script>
-    new DataTable('#results_table', {
-        dom: 'frtipB',
-        buttons: [
-            {
-                extend: 'excel',
-                filename: 'korpus',
-                title: null,
-                exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], //export all columns
-                }
-            },
-            {
-                extend: 'csv',
-                filename: 'korpus',
-                bom: true,
-                exportOptions: {
-                    columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], //export all columns
-                }
-            }
-        ],
-        columnDefs: [
-            {
-                targets: [2, 3, 4, 7, 11], //columns to be visible
-                visible: true
-            },
-            {
-                targets: '_all', 
-                visible: false
-            }
-        ]
-    });
-</script>
