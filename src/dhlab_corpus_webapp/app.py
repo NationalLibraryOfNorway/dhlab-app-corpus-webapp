@@ -57,7 +57,9 @@ def create_app() -> Flask:
 
             corpus = speadsheet_to_corpus(uploaded_file)
 
-            session['urn_list'] = corpus.frame['urn'].tolist()
+            session['urn_list'] = corpus['urn'].tolist()
+
+            corpus = corpus.frame
 
         else:
             corpus_metadata = CorpusMetadata.from_dict(request.form)
