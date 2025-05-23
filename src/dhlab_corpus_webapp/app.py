@@ -66,15 +66,9 @@ def create_app() -> Flask:
             
             corpus = create_corpus(corpus_metadata)
 
-        json_table = corpus.to_json(orient="records")
-        doctype = corpus["doctype"].iloc[0]
-        selected_columns = process_corpus_data(corpus, doctype)
-        selected_columns = selected_columns
-
         return render_template(
             "table.html",
-            json_table=json_table,
-            res_table=selected_columns.to_html(table_id="results_table", border=0),
+            res_table=corpus.to_html(table_id="results_table", border=0),
         )
 
     @app.route(f"{ROOT_PATH}/search-form-action")
@@ -85,17 +79,13 @@ def create_app() -> Flask:
         if type_ == "show-corpus-table":
             corpus = get_corpus_from_session()
 
-            json_table = corpus.frame.to_json(orient="records")
             doctype = corpus["doctype"].iloc[0]
-            selected_columns = process_corpus_data(corpus, doctype)
-            selected_columns = selected_columns.frame
 
             return render_template(
             "table.html",
-            json_table=json_table,
-            res_table=selected_columns.to_html(table_id="results_table", border=0),
+            res_table=corpus.to_html(table_id="results_table", border=0),
         )
-            #return render_template("table.html")
+
         elif type_ == "search-collocation":
             return render_template("search-collocation.html")
         elif type_ == "search-concordance":
@@ -303,56 +293,6 @@ def urn_list_to_corpus(urn_list: tuple[str]) -> dh.Corpus:
     corpus.extend_from_identifiers(list(urn_list))
     return corpus
 
-CORPUS_COLUMNS: dict[str, list[str]] = {
-    "digibok": [
-        "dhlabid",
-        "urn",
-        "authors",
-        "title",
-        "city",
-        "timestamp",
-        "year",
-        "publisher",
-        "ddc",
-        "subjects",
-        "langs",
-    ],
-    "digavis": ["dhlabid", "urn", "authors", "title", "city", "timestamp", "year"],
-    "digitidsskrift": [
-        "dhlabid",
-        "urn",
-        "title",
-        "city",
-        "timestamp",
-        "year",
-        "publisher",
-        "ddc",
-        "subjects",
-        "langs",
-    ],
-    "digistorting": ["dhlabid", "urn", "year"],
-    "digimanus": ["dhlabid", "urn", "authors", "title", "timestamp", "year"],
-    "kudos": [
-        "dhlabid",
-        "urn",
-        "authors",
-        "title",
-        "timestamp",
-        "year",
-        "publisher",
-        "langs",
-    ],
-    "nettavis": [
-        "dhlabid",
-        "urn",
-        "title",
-        "city",
-        "timestamp",
-        "year",
-        "publisher",
-        "langs",
-    ],
-}
 
 REFERENCES = {
     "generisk referanse (1800-2022)": "reference/nob-nno_1800_2022.csv",
@@ -367,11 +307,6 @@ REFERENCES = {
     "tidlig dansk-norsk/bokmål (før 1875)": "reference/nob_1800_1875.csv",
     "tidlig nynorsk (før 1875)": "reference/nob_1848_1875.csv"
 }
-
-
-def process_corpus_data(corpus: dh.Corpus, doctype: str) -> pd.DataFrame:
-    return corpus[CORPUS_COLUMNS[doctype]]
-
 
 app = create_app()
 
