@@ -59,7 +59,8 @@ h1 {
     color: white;
     padding: 10px;
     border-radius: 5px;
-    max-width: 15%; /* Set the width to less than half the page */
+    max-width: 25%; /* Set the width to less than half the page */
+    min-width: 150px; /* Ensures minimum width on small screens */
 }
 
 .details-content {
@@ -516,7 +517,9 @@ fieldset {
     z-index: 1;
     padding: 10px;
     border-radius: 20px;
+    font-size: 16px;
 }
+
 
 .dropdown.open .dropdown-content {
     display: block;
@@ -554,7 +557,7 @@ input[type="checkbox"] {
 }
 
 .tag {
-    background-color: #4CAF50;
+    background-color: var(--nb-blue);
     color: white;
     padding: 5px 10px;
     border-radius: 16px;

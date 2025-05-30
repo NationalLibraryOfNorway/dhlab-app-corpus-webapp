@@ -85,7 +85,7 @@ def create_app() -> Flask:
 
             return render_template(
             "table.html",
-            res_table=corpus.to_html(table_id="results_table", border=0),
+            res_table=corpus.frame.to_html(table_id="results_table", border=0),
         )
 
         elif type_ == "search-collocation":
