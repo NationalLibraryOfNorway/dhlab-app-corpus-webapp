@@ -180,7 +180,7 @@ def process_concordance_results(concordances, corpus):
 
     return pd.merge(
         concordances.frame, 
-        corpus, 
+        corpus.frame, 
         on="urn", 
         how="left"
     ).assign(
