@@ -35,6 +35,13 @@
                   extend: 'excel',
                   filename: 'kollokasjoner'
               }
-          ]
+          ],
+        //Automatisk scrolling til resultat
+        initComplete: function() {
+          document.querySelector('.datatable-container').scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          });
+        }
     });
   </script>
