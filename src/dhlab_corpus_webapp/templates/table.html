@@ -36,7 +36,13 @@
                 targets: '_all', 
                 visible: false
             }
-        ]
+        ],
+        //Skroll ned automatisk til resultat
+        initComplete: function() {
+            document.querySelector('.datatable-container').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
+        }
     });
 </script>
-

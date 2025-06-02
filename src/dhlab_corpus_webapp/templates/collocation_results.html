@@ -31,16 +31,22 @@
 </div>
 
 <script>
-  new DataTable('#results_table_coll', {
-    dom: 'rtipB',
-    responsive: true,
-    order: [], // Disable initial sorting
-    buttons: [
-        {
-            extend: 'excel',
-            filename: 'kollokasjoner'
-        }
-    ]
-  });
-</script>
+    new DataTable('#results_table_coll', {
+      dom: 'rtipB',
+      responsive: true,
+      buttons: [
+          {
+              extend: 'excel',
+              filename: 'kollokasjoner'
+          }
+      ],
+        //Automatisk scrolling til resultat
+      initComplete: function() {
+        document.querySelector('.datatable-container').scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }
+    });
+  </script>
 
