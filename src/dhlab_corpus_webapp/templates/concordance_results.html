@@ -1,4 +1,13 @@
 <div class="datatable-container">
+  <!-- Add view selector dropdown -->
+  <div class="view-selector mb-3">
+    <label for="view-mode">Visning: </label>
+    <select id="view-mode" class="form-select form-select-sm" style="width: auto; display: inline-block;">
+      <option value="detailed">Detaljert visning</option>
+      <option value="minimal">Minimal visning</option>
+    </select>
+  </div>
+  
   <div class="scrollable-table-container">
       <table id="results_table_conc" class="display">
     <caption>
@@ -14,7 +23,7 @@
       </tr>
     </thead>
     <tbody>
-	{% for row in resultframe.itertuples() %}
+    {% for row in resultframe.itertuples() %}
         <tr>
             <th scope="row">{{row.title}}</th>
             <td>{{row.authors}}</td>
@@ -22,12 +31,12 @@
             <td>{{row.link | safe}}</td>
             <td>{{row.concordance | safe}}</td>
         </tr>
-	{% endfor %}
+    {% endfor %}
     </tbody>
   </table>
 
   <script>
-    new DataTable('#results_table_conc', {
+    const dataTable = new DataTable('#results_table_conc', {
         dom: 'rtipB',
         responsive: true,
         buttons: [
@@ -41,6 +50,16 @@
           document.querySelector('.datatable-container').scrollIntoView({ 
             behavior: 'smooth', 
             block: 'start' 
+          });
+          //Detaljert vs minimal visning
+          const viewSelect = document.getElementById('view-mode');
+          viewSelect.addEventListener('change', function() {
+              if (this.value === 'minimal') {
+                  dataTable.columns([0, 1, 2, 3]).visible(false);
+              } else {
+                  dataTable.columns([0, 1, 2, 3]).visible(true);
+              }
+              dataTable.columns.adjust().responsive.recalc();
           });
         }
     });
