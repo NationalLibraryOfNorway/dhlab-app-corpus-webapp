@@ -53,15 +53,17 @@ def create_app() -> Flask:
     @cross_origin() 
     def make_corpus() -> str:
         if request.files:
+            session.pop('corpus_metadata', None)
             uploaded_file = request.files['spreadsheet']
 
             corpus = speadsheet_to_corpus(uploaded_file)
 
             session['urn_list'] = corpus['urn'].tolist()
 
-            corpus = corpus.frame
+            #corpus = corpus.frame 
 
         else:
+            session.pop('urn_list', None)
             corpus_metadata = CorpusMetadata.from_dict(request.form)
             
             session['corpus_metadata'] = asdict(corpus_metadata)
@@ -85,7 +87,7 @@ def create_app() -> Flask:
 
             return render_template(
             "table.html",
-            res_table=corpus.frame.to_html(table_id="results_table", border=0),
+            res_table=corpus.to_html(table_id="results_table", border=0),
         )
 
         elif type_ == "search-collocation":
@@ -129,7 +131,8 @@ def create_app() -> Flask:
         
         #coll = corpus.coll(words=words, before=int(words_before), after=int(words_after), samplesize=1000, reference=reference)
         coll = cc.Collocations(corpus["urn"], words=words, before=int(words_before), after=int(words_after), samplesize=1000, reference=reference)
-        coll_selected = coll.frame.sort_values(ascending=False, by=sorting_method)
+        coll = coll.frame
+        coll_selected = coll.sort_values(ascending=False, by=sorting_method)
         resultframe = coll_selected.head(int(max_coll))
 
         wordcloud_image = make_wordcloud(resultframe)
@@ -156,6 +159,7 @@ def get_corpus_from_session() -> dh.Corpus:
     if 'urn_list' in session:
         corpus = dh.Corpus()
         corpus.extend_from_identifiers(session['urn_list'])
+        corpus = corpus.frame
     elif 'corpus_metadata' in session:
         corpus_metadata = CorpusMetadata(**session['corpus_metadata'])
         corpus = create_corpus(corpus_metadata)
@@ -180,7 +184,7 @@ def process_concordance_results(concordances, corpus):
 
     return pd.merge(
         concordances.frame, 
-        corpus.frame, 
+        corpus, 
         on="urn", 
         how="left"
     ).assign(
@@ -288,12 +292,12 @@ def speadsheet_to_corpus(file) -> dh.Corpus:
     
     return urn_list_to_corpus(tuple(urn_list))
 
-
+#Funksjon som lager et korpus basert på urn-er når brukeren laster opp et regneark
 @lru_cache
 def urn_list_to_corpus(urn_list: tuple[str]) -> dh.Corpus:
     corpus = dh.Corpus()
     corpus.extend_from_identifiers(list(urn_list))
-    return corpus
+    return corpus.frame
 
 
 REFERENCES = {
