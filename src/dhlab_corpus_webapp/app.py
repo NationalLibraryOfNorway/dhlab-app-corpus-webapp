@@ -289,32 +289,27 @@ def create_app() -> Flask:
 
         corpus = spreadsheet_to_corpus(uploaded_file)
 
-        words = request.form.get("search")
-        words_before = request.form.get("words_before", 10)
-        words_after = request.form.get("words_after", 10)
-        reference_corp = request.form.get("ref_korpus")
-        max_coll = request.form.get("max_coll")
-        sorting_method = request.form.get("sorting_method")
-
-        reference_path = REFERENCE_PATH / reference_corp
+        reference_path = REFERENCE_PATH / request.form.get("ref_korpus")
         reference = pd.read_csv(
             reference_path, index_col=0, header=None, names=["word", "freq"]
         )
 
         coll = dhlab.text.conc_coll.Collocations(
             corpus["urn"],
-            words=words,
-            before=int(words_before),
-            after=int(words_after),
+            words=request.form.get("search"),
+            before=int(request.form.get("words_before", 10)),
+            after=int(request.form.get("words_after", 10)),
             samplesize=1000,
             reference=reference,
         )
+
+        sorting_method = request.form.get("sorting_method")
         coll_selected = coll.frame.dropna().sort_values(
             ascending=False, by=sorting_method
         )
 
-        resultframe = coll_selected.head(int(max_coll))
-
+        max_coll = int(request.form.get("max_coll"))
+        resultframe = coll_selected.head(max_coll)
         wordcloud_image = make_wordcloud(resultframe)
 
         return render_template(
