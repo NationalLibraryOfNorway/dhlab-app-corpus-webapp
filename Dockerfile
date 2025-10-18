@@ -1,19 +1,14 @@
-FROM python:3.12-slim-bookworm
+FROM python:3.13-slim-trixie
 
 WORKDIR /app
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+RUN pip install --upgrade pip && pip install uv
 COPY src /app/src
-COPY pyproject.toml .
-COPY README.md .
+COPY pyproject.toml /app/pyproject.toml
+COPY README.md /app/README.md
 
-RUN pip install --upgrade pip \
-&& pip install uv
-
-RUN uv sync
-
-WORKDIR /app/src/dhlab_corpus_webapp
+RUN uv sync --no-dev --compile-bytecode
 
 EXPOSE 5002
 
-CMD ["uv", "run", "gunicorn", "--bind", "0.0.0.0:5002", "app:app"]
+CMD ["uv", "run", "--no-sync", "gunicorn", "--bind", "0.0.0.0:5002", "dhlab_corpus_webapp.app:app"]

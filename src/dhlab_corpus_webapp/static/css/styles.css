@@ -1,0 +1,254 @@
+:root {
+    --small-margin: 10px;
+    --larger-margin: calc(2*var(--small-margin));
+    --links: var(--nb-color);
+    --column-width: 180px;
+    --border-width: 2px;
+    /* width is 6 columns + 7 margins + 2 extra margins for space around details box and border */
+    --body-width: calc(var(--column-width)*6 + var(--small-margin)*7 + 2*var(--small-margin) + var(--border-width)) ;
+    --sidebar-width: calc(var(--column-width) + 2*var(--small-margin));
+    --border-radius: 6px;
+}
+
+body {
+    max-width: var(--body-width);
+    font-family: var(--nb-font-family);
+    font-size: var(--font-size-s);
+    line-height: 1.4rem;
+}
+
+/* ---------------------------- */
+/* These are all for the banner */
+/* ---------------------------- */
+.banner{
+    color: var(--nb-logo-color);
+    display: flex;
+    border-bottom: 1px solid var(--background-alt);
+    justify-content: space-between;
+}
+
+.banner a.app-name:hover, .banner a.logo:hover {
+    text-decoration: none;
+}
+.banner > span {
+    display: flex;
+}
+
+/* NLN icon */
+.icon-button{
+    fill: var(--nb-logo-color);
+}
+
+/* DH-LAB */
+.logo {
+    font-family: var(--nb-font-family-secondary);
+    margin-left: var(--small-margin);
+    color: var(--nb-logo-color)
+}
+
+/* Separator between DH-LAB and app name in banner */
+.separator {
+    margin-right: var(--small-margin);
+    margin-left: var(--small-margin);
+}
+
+.app-name {
+    color: var(--nb-secondary-color)
+}
+
+/* ---------------------------- */
+
+/* Main body */
+
+a {
+    font-weight: var(--font-weight-medium);
+}
+
+h1 {
+    font-family: var(--nb-font-family-secondary);
+    color: var(--nb-secondary-color);
+}
+
+input, select {
+    font-family: var(--nb-font-family-secondary);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+
+/* ---------------------------- */
+/* ------ Loading screen ------ */
+/* ---------------------------- */
+#loading{
+    align-items: center; /* Center vertically */
+    background-color: color-mix(
+        in oklab,
+        var(--background-alt),
+        transparent 20%
+      );
+    display: none;
+    flex-direction: column;
+    font-size: 16px;
+    font-weight: bold;
+    height: 100%; /* Full height */
+    justify-content: center; /* Center horizontally */
+    left: 0; /* Align it to the left */
+    opacity: 0;
+    position: fixed; /* Position it relative to the viewport */
+    top: 0; /* Align it to the top */
+    transition: opacity 500ms ease-in;
+    width: 100%; /* Full width */
+    z-index: 1000; /* Make sure it's on top of other elements */
+}
+
+
+#loading div{
+    display: block;
+    text-align: center;
+    width: 100%;
+}
+
+
+#loading.htmx-request{
+    display: flex;
+    opacity: 1;
+}
+
+
+.loader {
+    animation: rotation 1s linear infinite;
+    border: 5px solid var(--text-main);
+    border-bottom-color: transparent;
+    border-radius: 50%;
+    box-sizing: border-box;
+    display: inline-block;
+    height: 48px;
+    margin-top: var(--small-margin);
+    width: 48px;
+}
+
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* ---------------------------- */
+/* ------ Other styling ------- */
+/* ---------------------------- */
+
+details, #corpus-exploration, #output {
+    /*
+    Alternative detail tag to water css to make the form more readable
+    Also adding matching style to corpus-exploration container
+    */
+	border: 2px solid var(--button-base);
+	background-color: transparent;
+    padding: var(--larger-margin) var(--larger-margin) 0;
+    border-radius: var(--border-radius);
+    display: block;
+}
+
+details[open]{
+  padding: var(--larger-margin);
+  overflow:visible;
+
+}
+
+summary {
+    width: 100%;
+    background-color: transparent;
+    padding: var(--larger-margin);
+    margin: calc(-2*var(--small-margin)) calc(-2*var(--small-margin)) 0;
+}
+
+@media (max-width: 673px) {
+    .method-option-container{display: block;}
+}
+
+figure {
+    margin: 0px;
+}
+
+#search-form-corpus .multiselect-dropdown-display {
+  margin-top: 0px;
+}
+
+#search-form-corpus .multiselect-dropdown-tag {
+    padding: 5px 10px;
+    border-radius: var(--border-radius);
+    margin-right:2px;
+    font-size: var(--font-size-s);
+    display: inline-block;
+    font-family: var(--nb-font-family-secondary);
+}
+
+#search-form-corpus .multiselect-dropdown-content {
+    border-radius: var(--border-radius);
+    font-size:inherit;
+    font-family: var(--nb-font-family-secondary);
+    margin-top: -10px;
+    border: solid 1px var(--button-base);
+    background: var(--background);
+}
+
+#output {
+    border-color: transparent;
+}
+
+#exploration-method-form{
+    margin-top: var(--larger-margin);
+    font-size: var(--font-size-r);
+}
+
+#exploration-method-form span, #exploration-method-form label{
+    margin-right: var(--small-margin);
+}
+
+#exploration-method-form input {
+  vertical-align: middle;
+}
+
+input.build-btn{
+    /* This class is for the "main" button for each action.
+    The idea is to make it stand out from the rest to draw the eye. */
+    background-color: var(--nb-color);
+    color: var(--background);
+    font-weight: 500;
+    font-size: var(--font-size-m);
+    letter-spacing: 1px;
+    width: auto;
+    margin-top: var(--larger-margin);
+    margin-bottom: var(--larger-margin);
+}
+
+@media (max-width: 385px){
+    input.build-btn{
+        font-size: var(--font-size-s);
+        display: block;
+        text-align: center;
+        width: 100%;
+    }
+    .table-view-option-container{
+        display: block;
+    }
+}
+dl {
+  display: grid;
+  grid-gap: var(--small-margin);
+  grid-template-columns: repeat(6, 1fr);
+}
+dt {
+    font-weight: bold;
+    text-align: right;
+    grid-column: 1/2;
+}
+
+dd {
+  margin: 0;
+  grid-column: 2/6
+}

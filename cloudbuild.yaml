@@ -1,27 +1,28 @@
-steps: 
-# Build the container image 
-- name: 'gcr.io/cloud-builders/docker' 
-  args: ['build', '-f', 'Dockerfile', '-t', 'gcr.io/$PROJECT_ID/corp-conc-coll-webapp:latest', '.'] 
-# Push the container image to Container Registry 
-- name: 'gcr.io/cloud-builders/docker' 
-  args: ['push', 'gcr.io/$PROJECT_ID/corp-conc-coll-webapp:latest'] 
-# Deploy container image to Cloud Run 
+steps:
+# Build the container image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-f', 'Dockerfile', '-t', 'gcr.io/$PROJECT_ID/korpusutforsker:latest', '.']
+# Push the container image to Container Registry
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/$PROJECT_ID/korpusutforsker:latest']
+# Deploy container image to Cloud Run
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: gcloud
-  args: 
-   - 'run' 
-   - 'deploy' 
-   - 'corp-conc-coll-webapp' 
-   - '--image' 
-   - 'gcr.io/$PROJECT_ID/corp-conc-coll-webapp:latest' 
-   - '--region' 
-   - 'europe-north1' 
-   - '--allow-unauthenticated' 
-   - '--cpu' 
-   - '1000m'  # Modifiser denne opp eller ned ved behov 
-   - '--memory' 
+  args:
+   - 'run'
+   - 'deploy'
+   - 'korpusutforsker'
+   - '--image'
+   - 'gcr.io/$PROJECT_ID/korpusutforsker:latest'
+   - '--region'
+   - 'europe-north1'
+   - '--allow-unauthenticated'
+   - '--cpu'
+   - '1000m'  # Modifiser denne opp eller ned ved behov
+   - '--memory'
    - '1Gi'  # Modifiser denne opp eller ned ved behov
   env:
-   - 'ROOT_PATH=/corp-conc-coll-webapp'
-images:      
-- 'gcr.io/$PROJECT_ID/corp-conc-coll-webapp:latest' 
+   - 'ROOT_PATH=/korpusutforsker'
+   - 'DHLAB_CORPUS_CACHE_SIZE=64'
+images:
+- 'gcr.io/$PROJECT_ID/korpusutforsker:latest'
