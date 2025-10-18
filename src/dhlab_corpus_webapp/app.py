@@ -2,7 +2,7 @@ import base64
 import io
 import os
 from functools import lru_cache
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Self
 
@@ -11,7 +11,7 @@ import dhlab as dhlab
 import dhlab.api.dhlab_api as dhlab_api
 import dhlab.text.conc_coll
 import jinja_partials
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request
 from flask_cors import cross_origin
 from whitenoise import WhiteNoise
 from wordcloud import WordCloud
@@ -123,16 +123,10 @@ def create_app() -> Flask:
     def make_corpus() -> str:
         if request.files:
             uploaded_file = request.files["spreadsheet"]
-
             corpus = spreadsheet_to_corpus(uploaded_file)
-
-            session["urn_list"] = corpus.frame["urn"].tolist()
 
         else:
             corpus_metadata = CorpusMetadata.from_dict(request.form)
-
-            session["corpus_metadata"] = asdict(corpus_metadata)
-
             corpus = create_corpus(corpus_metadata)
 
         json_table = corpus.to_json(orient="records")
@@ -171,8 +165,6 @@ def create_app() -> Flask:
         uploaded_file = request.files["spreadsheet"]
 
         corpus = spreadsheet_to_corpus(uploaded_file)
-
-        session["urn_list"] = corpus.frame["urn"].tolist()
 
         words = request.form.get("search")
         words_before = request.form.get("words_before", 10)
