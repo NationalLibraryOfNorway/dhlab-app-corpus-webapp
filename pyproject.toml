@@ -29,5 +29,5 @@ packages = ["src/dhlab_corpus_webapp"]
 
 [dependency-groups]
 dev = [
-    "ruff>=0.7.1",
+    "ruff>=0.14.1",
 ]
