@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Self
 
+import flask
 import pandas as pd
 import dhlab as dhlab
 import dhlab.api.dhlab_api as dhlab_api
@@ -231,7 +232,7 @@ def create_app() -> Flask:
 
     @app.route(f"{ROOT_PATH}/choose-action", methods=["GET"])
     @cross_origin()
-    def choose_action():
+    def choose_action() -> str | flask.Response:
         selected_option = request.args.get("type_")
         if selected_option == "build_corpus":
             return render_template("corpus_builder.html")
@@ -240,26 +241,24 @@ def create_app() -> Flask:
         elif selected_option == "make_conc":
             return render_template("search-concordance.html")
         else:
-            return "Invalid option", 400
+            return flask.Response("Invalid option", status=400)
 
     @app.route(f"{ROOT_PATH}/submit-form", methods=["GET", "POST"])
     @cross_origin()
     def make_corpus() -> str:
         if request.files:
             uploaded_file = request.files["spreadsheet"]
-            corpus = spreadsheet_to_corpus(uploaded_file)
-
+            corpus: pd.DataFrame = spreadsheet_to_corpus(uploaded_file).frame
         else:
             corpus_metadata = CorpusMetadata.from_dict(request.form)
-            corpus = create_corpus(corpus_metadata)
+            corpus: pd.DataFrame = create_corpus(corpus_metadata).frame
 
-        json_table = corpus.to_json(orient="records")
-        doctype = corpus["doctype"].iloc[0]
+        # We need to get the document type from the corpus itself as the user may have uploaded their own corpus
+        doctype = corpus["doctype"].unique().item()
         selected_columns = corpus[CORPUS_COLUMNS[doctype]]
-
         return render_template(
             "table.html",
-            json_table=json_table,
+            json_table=corpus.to_json(orient="records"),
             res_table=selected_columns.to_html(table_id="results_table", border=0),
         )
 
