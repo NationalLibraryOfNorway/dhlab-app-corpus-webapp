@@ -1,24 +1,26 @@
+import base64
+import io
+import os
 from functools import lru_cache
-from flask import Flask, render_template, request, session
 from dataclasses import dataclass, asdict
-import dhlab as dh
-import dhlab.api.dhlab_api as dhlab_api
-import dhlab.text.conc_coll as cc
-import pandas as pd
-from flask_cors import cross_origin
-import dhlab.text.conc_coll as conc_coll
-import jinja_partials
+from pathlib import Path
 from typing import Self
+
+import pandas as pd
+import dhlab as dhlab
+import dhlab.api.dhlab_api as dhlab_api
+import dhlab.text.conc_coll
+import jinja_partials
+from flask import Flask, render_template, request, session
+from flask_cors import cross_origin
+from whitenoise import WhiteNoise
 from wordcloud import WordCloud
+
+# We import matplotlib separately since we need to set the backend before importing pyplot
 import matplotlib
 
 matplotlib.use("agg")
 import matplotlib.pyplot as plt
-import io
-import base64
-from whitenoise import WhiteNoise
-import os
-from pathlib import Path
 
 
 ROOT_PATH = os.environ.get("ROOT_PATH", "")
@@ -78,7 +80,6 @@ def create_app() -> Flask:
     @app.route(f"{ROOT_PATH}/search_concordance", methods=["POST"])
     @cross_origin()
     def search_concordances() -> str:
-
         uploaded_file = request.files["spreadsheet"]
         corpus = spreadsheet_to_corpus(uploaded_file)
 
@@ -86,7 +87,9 @@ def create_app() -> Flask:
 
         window = int(request.args.get("window", 20))
 
-        concordances = cc.Concordance(corpus, query, limit=20, window=window)
+        concordances = dhlab.text.conc_coll.Concordance(
+            corpus, query, limit=20, window=window
+        )
 
         resultframe = process_concordance_results(concordances, corpus.frame)
 
@@ -115,7 +118,7 @@ def create_app() -> Flask:
         reference = read_csv(reference_path)
 
         # coll = corpus.coll(words=words, before=int(words_before), after=int(words_after), samplesize=1000, reference=reference)
-        coll = cc.Collocations(
+        coll = dhlab.text.conc_coll.Collocations(
             corpus["urn"],
             words=words,
             before=int(words_before),
@@ -147,7 +150,7 @@ def read_csv(reference_path) -> pd.DataFrame:
         reference_df = pd.read_csv(reference_path)
         reference_df.columns = ["word", "freq"]
         reference = reference_df.set_index("word")
-    except:
+    except Exception:
         print(
             "Statisk referansekorpus kunne ikke hentes. Se på parametrene for korpuset eller prøv igjen."
         )
@@ -155,9 +158,9 @@ def read_csv(reference_path) -> pd.DataFrame:
     return reference
 
 
-def get_corpus_from_session() -> dh.Corpus:
+def get_corpus_from_session() -> dhlab.Corpus:
     if "urn_list" in session:
-        corpus = dh.Corpus()
+        corpus = dhlab.Corpus()
         corpus.extend_from_identifiers(session["urn_list"])
     elif "corpus_metadata" in session:
         corpus_metadata = CorpusMetadata(**session["corpus_metadata"])
@@ -254,7 +257,7 @@ class CorpusMetadata:
 
 
 @lru_cache
-def create_corpus(corpus_metadata: CorpusMetadata) -> dh.Corpus:
+def create_corpus(corpus_metadata: CorpusMetadata) -> dhlab.Corpus:
     dh_corpus_object = dhlab_api.document_corpus(
         doctype=corpus_metadata.document_type,
         author=corpus_metadata.author,
@@ -274,7 +277,7 @@ def create_corpus(corpus_metadata: CorpusMetadata) -> dh.Corpus:
     return dh_corpus_object
 
 
-def spreadsheet_to_corpus(file) -> dh.Corpus:
+def spreadsheet_to_corpus(file) -> dhlab.Corpus:
     if file.filename.endswith(".csv"):
         df = pd.read_csv(file)
 
@@ -286,8 +289,8 @@ def spreadsheet_to_corpus(file) -> dh.Corpus:
 
 #Funksjon som lager et korpus basert på urn-er når brukeren laster opp et regneark
 @lru_cache
-def urn_list_to_corpus(urn_list: tuple[str]) -> dh.Corpus:
-    corpus = dh.Corpus()
+def urn_list_to_corpus(urn_list: tuple[str]) -> dhlab.Corpus:
+    corpus = dhlab.Corpus()
     corpus.extend_from_identifiers(list(urn_list))
     return corpus.frame
 
@@ -356,6 +359,11 @@ REFERENCES = {
     "tidlig dansk-norsk/bokmål (før 1875)": "reference/nob_1800_1875.csv",
     "tidlig nynorsk (før 1875)": "reference/nob_1848_1875.csv",
 }
+
+
+def process_corpus_data(corpus: dhlab.Corpus, doctype: str) -> pd.DataFrame:
+    return corpus[CORPUS_COLUMNS[doctype]]
+
 
 app = create_app()
 
