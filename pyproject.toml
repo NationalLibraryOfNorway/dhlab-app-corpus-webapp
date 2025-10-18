@@ -31,3 +31,6 @@ packages = ["src/dhlab_corpus_webapp"]
 dev = [
     "ruff>=0.14.1",
 ]
+
+[tool.ruff]
+line-length = 120
