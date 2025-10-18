@@ -24,6 +24,70 @@ import matplotlib.pyplot as plt
 
 
 ROOT_PATH = os.environ.get("ROOT_PATH", "")
+REFERENCE_PATH = Path(__file__).parent / "reference"
+CORPUS_COLUMNS: dict[str, list[str]] = {
+    "digibok": [
+        "dhlabid",
+        "urn",
+        "authors",
+        "title",
+        "city",
+        "timestamp",
+        "year",
+        "publisher",
+        "ddc",
+        "subjects",
+        "langs",
+    ],
+    "digavis": ["dhlabid", "urn", "authors", "title", "city", "timestamp", "year"],
+    "digitidsskrift": [
+        "dhlabid",
+        "urn",
+        "title",
+        "city",
+        "timestamp",
+        "year",
+        "publisher",
+        "ddc",
+        "subjects",
+        "langs",
+    ],
+    "digistorting": ["dhlabid", "urn", "year"],
+    "digimanus": ["dhlabid", "urn", "authors", "title", "timestamp", "year"],
+    "kudos": [
+        "dhlabid",
+        "urn",
+        "authors",
+        "title",
+        "timestamp",
+        "year",
+        "publisher",
+        "langs",
+    ],
+    "nettavis": [
+        "dhlabid",
+        "urn",
+        "title",
+        "city",
+        "timestamp",
+        "year",
+        "publisher",
+        "langs",
+    ],
+}
+REFERENCES = {
+    "generisk referanse (1800-2022)": "reference/nob-nno_1800_2022.csv",
+    "nåtidig bokmål (2000-)": "reference/nob_2000_2022.csv",
+    "nåtidig nynorsk (2000-)": "reference/nno_2000_2022.csv",
+    "bokmål (1950-2000)": "reference/nob_1950_2000.csv",
+    "nynorsk (1950-2000)": "reference/nno_1950_2000.csv",
+    "bokmål (1920-1950)": "reference/nob_1920_1950.csv",
+    "nynorsk (1920-1950)": "reference/nno_1920_1950.csv",
+    "bokmål (1875-1920)": "reference/nob_1875_1920.csv",
+    "nynorsk (1875-1920)": "reference/nno_1875_1920.csv",
+    "tidlig dansk-norsk/bokmål (før 1875)": "reference/nob_1800_1875.csv",
+    "tidlig nynorsk (før 1875)": "reference/nob_1848_1875.csv",
+}
 
 
 def create_app() -> Flask:
@@ -72,6 +136,10 @@ def create_app() -> Flask:
 
             corpus = create_corpus(corpus_metadata)
 
+        json_table = corpus.to_json(orient="records")
+        doctype = corpus["doctype"].iloc[0]
+        selected_columns = corpus[CORPUS_COLUMNS[doctype]]
+
         return render_template(
             "table.html",
             res_table=corpus.to_html(table_id="results_table", border=0),
@@ -105,7 +173,6 @@ def create_app() -> Flask:
         corpus = spreadsheet_to_corpus(uploaded_file)
 
         session["urn_list"] = corpus.frame["urn"].tolist()
-        # corpus = get_corpus_from_session()
 
         words = request.form.get("search")
         words_before = request.form.get("words_before", 10)
@@ -114,10 +181,11 @@ def create_app() -> Flask:
         max_coll = request.form.get("max_coll")
         sorting_method = request.form.get("sorting_method")
 
-        reference_path = f"reference/{reference_corp}"
-        reference = read_csv(reference_path)
+        reference_path = REFERENCE_PATH / reference_corp
+        reference = pd.read_csv(
+            reference_path, index_col=0, header=None, names=["word", "freq"]
+        )
 
-        # coll = corpus.coll(words=words, before=int(words_before), after=int(words_after), samplesize=1000, reference=reference)
         coll = dhlab.text.conc_coll.Collocations(
             corpus["urn"],
             words=words,
@@ -142,33 +210,6 @@ def create_app() -> Flask:
         )
 
     return app
-
-
-def read_csv(reference_path) -> pd.DataFrame:
-    print(reference_path)
-    try:
-        reference_df = pd.read_csv(reference_path)
-        reference_df.columns = ["word", "freq"]
-        reference = reference_df.set_index("word")
-    except Exception:
-        print(
-            "Statisk referansekorpus kunne ikke hentes. Se på parametrene for korpuset eller prøv igjen."
-        )
-
-    return reference
-
-
-def get_corpus_from_session() -> dhlab.Corpus:
-    if "urn_list" in session:
-        corpus = dhlab.Corpus()
-        corpus.extend_from_identifiers(session["urn_list"])
-    elif "corpus_metadata" in session:
-        corpus_metadata = CorpusMetadata(**session["corpus_metadata"])
-        corpus = create_corpus(corpus_metadata)
-    else:
-        raise ValueError("No corpus data found in session")
-
-    return corpus
 
 
 def process_concordance_results(concordances, corpus):
@@ -293,76 +334,6 @@ def urn_list_to_corpus(urn_list: tuple[str]) -> dhlab.Corpus:
     corpus = dhlab.Corpus()
     corpus.extend_from_identifiers(list(urn_list))
     return corpus.frame
-
-
-CORPUS_COLUMNS: dict[str, list[str]] = {
-    "digibok": [
-        "dhlabid",
-        "urn",
-        "authors",
-        "title",
-        "city",
-        "timestamp",
-        "year",
-        "publisher",
-        "ddc",
-        "subjects",
-        "langs",
-    ],
-    "digavis": ["dhlabid", "urn", "authors", "title", "city", "timestamp", "year"],
-    "digitidsskrift": [
-        "dhlabid",
-        "urn",
-        "title",
-        "city",
-        "timestamp",
-        "year",
-        "publisher",
-        "ddc",
-        "subjects",
-        "langs",
-    ],
-    "digistorting": ["dhlabid", "urn", "year"],
-    "digimanus": ["dhlabid", "urn", "authors", "title", "timestamp", "year"],
-    "kudos": [
-        "dhlabid",
-        "urn",
-        "authors",
-        "title",
-        "timestamp",
-        "year",
-        "publisher",
-        "langs",
-    ],
-    "nettavis": [
-        "dhlabid",
-        "urn",
-        "title",
-        "city",
-        "timestamp",
-        "year",
-        "publisher",
-        "langs",
-    ],
-}
-
-REFERENCES = {
-    "generisk referanse (1800-2022)": "reference/nob-nno_1800_2022.csv",
-    "nåtidig bokmål (2000-)": "reference/nob_2000_2022.csv",
-    "nåtidig nynorsk (2000-)": "reference/nno_2000_2022.csv",
-    "bokmål (1950-2000)": "reference/nob_1950_2000.csv",
-    "nynorsk (1950-2000)": "reference/nno_1950_2000.csv",
-    "bokmål (1920-1950)": "reference/nob_1920_1950.csv",
-    "nynorsk (1920-1950)": "reference/nno_1920_1950.csv",
-    "bokmål (1875-1920)": "reference/nob_1875_1920.csv",
-    "nynorsk (1875-1920)": "reference/nno_1875_1920.csv",
-    "tidlig dansk-norsk/bokmål (før 1875)": "reference/nob_1800_1875.csv",
-    "tidlig nynorsk (før 1875)": "reference/nob_1848_1875.csv",
-}
-
-
-def process_corpus_data(corpus: dhlab.Corpus, doctype: str) -> pd.DataFrame:
-    return corpus[CORPUS_COLUMNS[doctype]]
 
 
 app = create_app()
