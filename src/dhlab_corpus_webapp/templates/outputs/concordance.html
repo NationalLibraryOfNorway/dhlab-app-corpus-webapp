@@ -1,0 +1,30 @@
+<div class="datatable-container">
+  <div class="scrollable-table-container">
+    <table id="concordance-table" class="display">
+      <caption>
+        Resultater:
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Tittel</th>
+          <th scope="col">Kontekst</th>
+          {% if "digavis" not in doctypes or doctypes|length > 1 %}<th scope="col">Forfatter</th>{%- endif %}
+          <th scope="col">Utgitt</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for row in concordances.itertuples() %}
+          <tr>
+              <th scope="row"><a href="https://www.nb.no/items/{{row.urn}}?searchText={{query}}" target="_blank">{{row.title}}</a></th>
+              <td>{{row.concordance | safe}}</td>
+              {% if "digavis" not in doctypes or doctypes|length> 1 %}<td>{{row.authors}}</td>{%- endif %}
+              <td>{{row.timestamp.strftime(row.timeformat)}}</td>
+          </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<a download="konkordanser.zip" href="data:application/zip;base64,{{ data_zip | safe }}">Last ned konkordanser</a>
+
+<script>initializeDataTable('#concordance-table');</script>

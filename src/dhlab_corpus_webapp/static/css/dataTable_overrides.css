@@ -1,0 +1,77 @@
+
+.datatable-container td {
+    padding: var(--small-margin)
+}
+
+.dt-search label{
+    /* Updating the table search label to have corresponding padding to the search field */
+    padding: var(--small-margin);
+}
+
+.datatable-container input, .datatable-container select {
+    width: auto;
+    display: inline-block;
+}
+
+.dt-paging button {
+    background-color: transparent;
+    padding-left: var(--small-margin);
+    padding-right: var(--small-margin);
+    font-family: var(--nb-font-family-secondary);
+}
+
+.dt-paging button.current {
+    border: 2px solid var(--button-base);
+}
+
+.datatable-container table {
+    table-layout: auto;
+}
+
+
+@media (max-width: 520px) {
+    .dt-layout-row.dt-layout-table {
+        overflow-x: auto;
+    }
+}
+
+
+/*
+Fet tekst, som vi bruker for konkordanser, er ikke uthevende nok i dark-mode.
+Derfor endrer vi slik at fet tekst inni datatables får samme stil som kbd-tagen til Water.css
+*/
+
+.datatable-container b {
+  background: #efefef;
+  background: var(--background);
+  border: 1px solid #dbdbdb;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: #363636;
+  color: var(--text-main);
+  padding: 2px 4px 2px 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+
+  .datatable-container b {
+  color: #dbdbdb;
+  color: var(--text-main);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+
+  .datatable-container b {
+  border: 1px solid #526980;
+  border: 1px solid var(--border);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+
+  .datatable-container b {
+  background: #161f27;
+  background: var(--background);
+  }
+}

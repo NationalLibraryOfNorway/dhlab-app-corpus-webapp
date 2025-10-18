@@ -1,0 +1,41 @@
+<div class="gridded-container">
+    <div class="datatable-container grid-column">
+
+        <h2>Kollokasjonresultater: </h2>
+        <div class="scrollable-table-container grid-column">
+            <table id="results-table-coll" class="display">
+                <thead>
+                    <tr>
+                        <th scope="col">Kollokat</th>
+                        <th scope="col">Råfrekvens</th>
+                        <th scope="col">Relevans</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in resultframe.itertuples() %}
+                        <tr>
+                            <td>{{ row.Index }}</td>
+                            <td>{{ row.counts }}</td>
+                            <td>{{ "%.2f" | format(row.relevance) }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="wordcloud-container grid-column">
+        <h2>Ordsky: </h2>
+        <figure>
+            <img src="data:image/png;base64,{{ wordcloud_image }}"
+                alt="Ordskyvisualisering av kollokasjonstabell"
+                class="wordcloud-image">
+        </figure>
+    </div>
+</div>
+
+<!-- Store the order_by value in a hidden input -->
+<input type="hidden" id="order_by" value="{{ order_by }}">
+<a download="kollokasjoner.zip" href="data:application/zip;base64,{{ data_zip | safe }}">Last ned kollokasjoner</a>
+
+<script>initializeDataTable('#results-table-coll');</script>

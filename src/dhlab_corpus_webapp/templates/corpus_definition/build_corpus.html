@@ -1,0 +1,82 @@
+<div class="gridded-container">
+    <div class="grid-column" id="search-type-selection">
+        <label for="doc_type_selection">Dokumenttype:
+            <span class="fas fa-question-circle help-icon" title="Følger Nasjonalbibliotekets digitale dokumenttyper."></span>
+
+        </label>
+        <select name="doc_type_selection" id="doc-type-selection">
+            <option value="digibok">Bøker</option>
+            <option value="digavis">Aviser</option>
+            <option value="digitidsskrift">Tidsskrift</option>
+            <option value="digimanus">Brev og manuskripter</option>
+            <option value="digistorting">Stortingsforhandlinger</option>
+            <option value="kudos">Kudos</option>
+            <option value="nettavis">Nettavis</option>
+        </select>
+    </div>
+
+    <div class="grid-column">
+        <label for="language-input" >
+            Språk:
+            <span class="fas fa-question-circle help-icon" title="Velg språk fra listen."></span>
+        </label>
+        <select name="language" id="language-input" data-placeholder="Velg språk" multiple="multiple" data-multi-select>
+            {% for lang_code, lang_name in languages.items() -%}
+            <option value="{{lang_code}}">{{lang_name}}</option>
+            {%- endfor %}
+        </select>
+    </div>
+
+    <div class="grid-column">
+        <label for="author-input">Forfatter:
+            <span class="fas fa-question-circle help-icon" title="Feltet blir kun tatt hensyn til for digibok."></span>
+        </label>
+        <input type="text" id="author-input" name="author" />
+    </div>
+
+    <div class="grid-column">
+        <label for="title-input">Tittel:
+            <span class="fas fa-question-circle help-icon" title="Søk etter titler. For aviser vil tittel matche avisnavnet."></span>
+        </label>
+        <input type="text" id="title-input" name="title" />
+    </div>
+
+    <div class="grid-column">
+        <label for="words-or-phrases-input">Ord eller fraser i teksten:
+            <span class="fas fa-question-circle help-icon" title="Søketreff er uavhengig av stor og liten bokstav.&#10;Du kan søke trunkert med ''.''&#10;For eksempel vil 'demokrat' returnere tekster som inneholder demokrati og demokratisk blant andre treff."></span>
+        </label>
+        <input type="text" id="words-or-phrases-input" name="words_or_phrases" />
+    </div>
+
+    <div class="grid-column">
+        <label for="subject-input">Emneord:
+            <span class="fas fa-question-circle help-icon" title="For å matche på flere emner, skill mellom OR for alternativ og AND for å begrense. "></span>
+        </label>
+        <input id="subject-input" type="text" name="subject" />
+    </div>
+
+    <div class="grid-column small-field">
+        <label for="from-year-input">Fra år:</label>
+        <input id="from-year-input" type="number" name="from_year" />
+    </div>
+
+    <div class="grid-column small-field">
+        <label for="to-year-input">Til år:</label>
+        <input id="to-year-input" type="number" name="to_year" />
+    </div>
+
+
+    <div class="grid-column">
+        <label for="dewey-input">Dewey desimaltall:
+            <span class="fas fa-question-circle help-icon" title="Input matcher et deweynummer.&#10;For å matche en hel serie, føy til *.&#10;Bruk OR for å kombinere: 364* OR 916* ."></span>
+        </label>
+        <input id="dewey-input" type="text" name="dewey" />
+    </div>
+    <div class="grid-column">
+        <label for="num-docs-input">Maks antall, inntil 10 000:</label>
+        <input id="num-docs-input" type="number" name="num_docs" min="1" max="10000" value="100" />
+    </div>
+</div>
+
+<script>autoupdateAllowedCorpusSearchFields()</script>
+<script>languageSelector = new MultiSelect(document.getElementById('language-input'), {selectAll: false});</script>

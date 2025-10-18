@@ -1,0 +1,56 @@
+<input type="hidden" name="exploration-method" value="collocations">
+
+<div class="gridded-container">
+    <div class="grid-column">
+        <label for="search-phrase-collocation">Skriv inn basisord her:</label>
+        <input id="search-phrase-collocation" type="search" name="search" placeholder="Søkeuttrykk" required>
+    </div>
+
+
+    <div class="grid-column small-field">
+        <label for="words-before-input">Ord før basisord</label>
+        <input type="number" id="words-before-input" name="words_before" min="1" max="50" value="10" />
+    </div>
+
+    <div class="grid-column small-field">
+        <label for="words-after-input">Ord etter basisord</label>
+        <input type="number" id="words-after-input" name="words_after" min="1" max="50" value="10" />
+    </div>
+
+    <div class="grid-column">
+        <label for="referansekorpus-input">
+            Velg referansekorpus:
+            <span class="fas fa-question-circle help-icon" title="Velg referansekorpus som kollokasjonene skal beregnes på bakgrunn av."></span>
+        </label>
+        <select name="ref_korpus" id="referansekorpus-input">
+            {% for reference_corpus in reference_corpora -%}
+            <option value="{{reference_corpus}}">{{reference_corpus}}</option>
+            {%- endfor %}
+        </select>
+    </div>
+
+    <div class="grid-column">
+        <label for="relevance-input">Terskelverdi: Relevans</label>
+        <input type="number" id="relevance-input" name="relevance" min="1" max="100" value="10" />
+    </div>
+
+    <div class="grid-column">
+        <label for="raw-freq-input">Terskelverdi: Råfrekvens</label>
+        <input type="number" id="raw-freq-input" name="raw_freq" min="1" max="100" value="5"/>
+    </div>
+
+    <div class="grid-column">
+        <label for="max-coll-input">Maks antall kollokasjoner</label>
+        <input type="number" id="max-coll-input" name="max_coll" min="1" max="100" value="20"/>
+    </div>
+
+    <div class="grid-column large-field">
+        <label for="sorting-method-input">Sorter etter:</label>
+        <select name="sorting_method" id="sorting-method-input">
+            <option value="relevance">Relevans</option>
+            <option value="counts">Råfrekvens</option>
+        </select>
+    </div>
+</div>
+
+<input class="build-btn" type="submit" name="update-search" value="Hent kollokasjoner">
