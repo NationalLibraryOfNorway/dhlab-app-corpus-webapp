@@ -17,12 +17,6 @@ from flask_cors import cross_origin
 from whitenoise import WhiteNoise
 from wordcloud import WordCloud
 
-# We import matplotlib separately since we need to set the backend before importing pyplot
-import matplotlib
-
-matplotlib.use("agg")
-import matplotlib.pyplot as plt
-
 
 ROOT_PATH = os.environ.get("ROOT_PATH", "")
 REFERENCE_PATH = Path(__file__).parent / "reference"
@@ -193,23 +187,16 @@ def process_concordance_results(
     )[columns]
 
 
-def make_wordcloud(df, width=800, height=400, background_color="white"):
+def make_wordcloud(df: pd.DataFrame) -> str:
     index_series = df.index.to_series()
     words = index_series.str.replace(r"\s+\d+$", "", regex=True)
     word_freq = dict(zip(words, df["relevance"]))
 
-    wc = WordCloud(
-        width=width, height=height, background_color=background_color, max_words=100
-    )
-
+    wc = WordCloud(width=800, height=400, background_color="white", max_words=100)
     wc.generate_from_frequencies(word_freq)
 
     img = io.BytesIO()
-    plt.figure(figsize=(10, 5))
-    plt.imshow(wc, interpolation="bilinear")
-    plt.axis("off")
-    plt.savefig(img, format="png", bbox_inches="tight", pad_inches=0)
-    plt.close()
+    wc.to_image().save(img, format="PNG")
 
     img.seek(0)
     img_str = base64.b64encode(img.getvalue()).decode()
