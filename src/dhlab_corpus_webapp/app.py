@@ -90,6 +90,130 @@ REFERENCES = {
 }
 
 
+@dataclass(frozen=True)
+class CorpusMetadata:
+    document_type: str
+    language: str | None
+    author: str | None
+    title: str | None
+    words_or_phrases: str | None
+    key_words: str | None
+    dewey: str | None
+    subject: str | None
+    from_year: str | None
+    to_year: str | None
+    search_type: str
+    num_docs: int
+    corpus_name: str
+
+    @classmethod
+    def from_dict(cls, data: dict[str, str]) -> Self:
+        return cls(
+            document_type=data.get("doc_type_selection"),
+            language=data.get("language"),
+            author=data.get("author"),
+            title=data.get("title"),
+            words_or_phrases=data.get("words_or_phrases"),
+            key_words=data.get("key_words"),
+            dewey=data.get("dewey"),
+            subject=data.get("subject"),
+            from_year=data.get("from_year"),
+            to_year=data.get("to_year"),
+            search_type=data.get("search_type", "random"),
+            num_docs=int(data.get("num_docs", 2000)),
+            corpus_name=data.get("corpus_name"),
+        )
+
+
+@lru_cache
+def create_corpus(corpus_metadata: CorpusMetadata) -> dhlab.Corpus:
+    dh_corpus_object = dhlab_api.document_corpus(
+        doctype=corpus_metadata.document_type,
+        author=corpus_metadata.author,
+        freetext=None,
+        fulltext=corpus_metadata.words_or_phrases,
+        from_year=corpus_metadata.from_year,
+        to_year=corpus_metadata.to_year,
+        from_timestamp=None,
+        title=corpus_metadata.title,
+        ddk=corpus_metadata.dewey,
+        subject=corpus_metadata.subject,
+        lang=corpus_metadata.language,
+        limit=corpus_metadata.num_docs,
+        order_by=corpus_metadata.search_type,
+    )
+
+    return dh_corpus_object
+
+
+@lru_cache
+def urn_list_to_corpus(urn_list: tuple[str]) -> dhlab.Corpus:
+    corpus = dhlab.Corpus()
+    corpus.extend_from_identifiers(list(urn_list))
+    return corpus
+
+
+def spreadsheet_to_corpus(file) -> dhlab.Corpus:
+    if file.filename.endswith(".csv"):
+        df = pd.read_csv(file)
+
+    elif file.filename.endswith(".xls") or file.filename.endswith(".xlsx"):
+        df = pd.read_excel(file)
+    urn_list = df["urn"].dropna().tolist()
+
+    return urn_list_to_corpus(tuple(urn_list))
+
+
+def process_concordance_results(concordances, corpus):
+    def get_timeformat(df: pd.DataFrame) -> list[str]:
+        return [
+            "%Y-%m-%d" if doctype == "digavis" else "%Y" for doctype in df["doctype"]
+        ]
+
+    def get_timestamp(df: pd.DataFrame) -> pd.Series:
+        return pd.to_datetime(
+            df["timestamp"].astype(str), format="%Y%m%d", errors="coerce"
+        ).fillna(pd.Timestamp("1900-01-01"))
+
+    return pd.merge(concordances.frame, corpus, on="urn", how="left").assign(
+        timeformat=get_timeformat, timestamp=get_timestamp
+    )[
+        [
+            "title",
+            "authors",
+            "year",
+            "timestamp",
+            "timeformat",
+            "concordance",
+            "link",
+        ]
+    ]
+
+
+def make_wordcloud(df, width=800, height=400, background_color="white"):
+    index_series = df.index.to_series()
+    words = index_series.str.replace(r"\s+\d+$", "", regex=True)
+    word_freq = dict(zip(words, df["relevance"]))
+
+    wc = WordCloud(
+        width=width, height=height, background_color=background_color, max_words=100
+    )
+
+    wc.generate_from_frequencies(word_freq)
+
+    img = io.BytesIO()
+    plt.figure(figsize=(10, 5))
+    plt.imshow(wc, interpolation="bilinear")
+    plt.axis("off")
+    plt.savefig(img, format="png", bbox_inches="tight", pad_inches=0)
+    plt.close()
+
+    img.seek(0)
+    img_str = base64.b64encode(img.getvalue()).decode()
+
+    return img_str
+
+
 def create_app() -> Flask:
     app = Flask(__name__)
     app.secret_key = "superhemmelig-noekkel"
@@ -202,130 +326,6 @@ def create_app() -> Flask:
         )
 
     return app
-
-
-def process_concordance_results(concordances, corpus):
-    def get_timeformat(df: pd.DataFrame) -> list[str]:
-        return [
-            "%Y-%m-%d" if doctype == "digavis" else "%Y" for doctype in df["doctype"]
-        ]
-
-    def get_timestamp(df: pd.DataFrame) -> pd.Series:
-        return pd.to_datetime(
-            df["timestamp"].astype(str), format="%Y%m%d", errors="coerce"
-        ).fillna(pd.Timestamp("1900-01-01"))
-
-    return pd.merge(concordances.frame, corpus, on="urn", how="left").assign(
-        timeformat=get_timeformat, timestamp=get_timestamp
-    )[
-        [
-            "title",
-            "authors",
-            "year",
-            "timestamp",
-            "timeformat",
-            "concordance",
-            "link",
-        ]
-    ]
-
-
-def make_wordcloud(df, width=800, height=400, background_color="white"):
-    index_series = df.index.to_series()
-    words = index_series.str.replace(r"\s+\d+$", "", regex=True)
-    word_freq = dict(zip(words, df["relevance"]))
-
-    wc = WordCloud(
-        width=width, height=height, background_color=background_color, max_words=100
-    )
-
-    wc.generate_from_frequencies(word_freq)
-
-    img = io.BytesIO()
-    plt.figure(figsize=(10, 5))
-    plt.imshow(wc, interpolation="bilinear")
-    plt.axis("off")
-    plt.savefig(img, format="png", bbox_inches="tight", pad_inches=0)
-    plt.close()
-
-    img.seek(0)
-    img_str = base64.b64encode(img.getvalue()).decode()
-
-    return img_str
-
-
-@dataclass(frozen=True)
-class CorpusMetadata:
-    document_type: str
-    language: str | None
-    author: str | None
-    title: str | None
-    words_or_phrases: str | None
-    key_words: str | None
-    dewey: str | None
-    subject: str | None
-    from_year: str | None
-    to_year: str | None
-    search_type: str
-    num_docs: int
-    corpus_name: str
-
-    @classmethod
-    def from_dict(cls, data: dict[str, str]) -> Self:
-        return cls(
-            document_type=data.get("doc_type_selection"),
-            language=data.get("language"),
-            author=data.get("author"),
-            title=data.get("title"),
-            words_or_phrases=data.get("words_or_phrases"),
-            key_words=data.get("key_words"),
-            dewey=data.get("dewey"),
-            subject=data.get("subject"),
-            from_year=data.get("from_year"),
-            to_year=data.get("to_year"),
-            search_type=data.get("search_type", "random"),
-            num_docs=int(data.get("num_docs", 2000)),
-            corpus_name=data.get("corpus_name"),
-        )
-
-
-@lru_cache
-def create_corpus(corpus_metadata: CorpusMetadata) -> dhlab.Corpus:
-    dh_corpus_object = dhlab_api.document_corpus(
-        doctype=corpus_metadata.document_type,
-        author=corpus_metadata.author,
-        freetext=None,
-        fulltext=corpus_metadata.words_or_phrases,
-        from_year=corpus_metadata.from_year,
-        to_year=corpus_metadata.to_year,
-        from_timestamp=None,
-        title=corpus_metadata.title,
-        ddk=corpus_metadata.dewey,
-        subject=corpus_metadata.subject,
-        lang=corpus_metadata.language,
-        limit=corpus_metadata.num_docs,
-        order_by=corpus_metadata.search_type,
-    )
-
-    return dh_corpus_object
-
-
-def spreadsheet_to_corpus(file) -> dhlab.Corpus:
-    if file.filename.endswith(".csv"):
-        df = pd.read_csv(file)
-
-    elif file.filename.endswith(".xls") or file.filename.endswith(".xlsx"):
-        df = pd.read_excel(file)
-    urn_list = df["urn"].dropna().tolist()
-
-    return urn_list_to_corpus(tuple(urn_list))
-
-
-@lru_cache
-def urn_list_to_corpus(urn_list: tuple[str]) -> dhlab.Corpus:
-    corpus = dhlab.Corpus()
-    corpus.extend_from_identifiers(list(urn_list))
-    return corpus
 
 
 app = create_app()
