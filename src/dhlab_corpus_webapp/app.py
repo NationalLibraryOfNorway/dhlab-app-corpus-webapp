@@ -121,7 +121,7 @@ class CorpusMetadata:
 
 
 @lru_cache
-def create_corpus(corpus_metadata: CorpusMetadata) -> dhlab.Corpus:
+def create_corpus(corpus_metadata: CorpusMetadata) -> pd.DataFrame:
     dh_corpus_object = dhlab_api.document_corpus(
         doctype=corpus_metadata.document_type,
         author=corpus_metadata.author,
@@ -142,13 +142,13 @@ def create_corpus(corpus_metadata: CorpusMetadata) -> dhlab.Corpus:
 
 
 @lru_cache
-def urn_list_to_corpus(urn_list: tuple[str]) -> dhlab.Corpus:
+def urn_list_to_corpus(urn_list: tuple[str]) -> pd.DataFrame:
     corpus = dhlab.Corpus()
     corpus.extend_from_identifiers(list(urn_list))
-    return corpus
+    return corpus.frame
 
 
-def spreadsheet_to_corpus(file) -> dhlab.Corpus:
+def spreadsheet_to_corpus(file) -> pd.DataFrame:
     if file.filename.endswith(".csv"):
         df = pd.read_csv(file)
 
@@ -182,7 +182,7 @@ def process_concordance_results(
         "concordance",
         "link",
     ]
-    return pd.merge(concordances.frame, corpus, on="urn", how="left").assign(
+    return pd.merge(concordances, corpus, on="urn", how="left").assign(
         timeformat=get_timeformat, timestamp=get_timestamp
     )[columns]
 
@@ -202,6 +202,15 @@ def make_wordcloud(df: pd.DataFrame) -> str:
     img_str = base64.b64encode(img.getvalue()).decode()
 
     return img_str
+
+
+def get_corpus_from_request(request: flask.Request) -> pd.DataFrame:
+    if request.files:
+        uploaded_file = request.files["spreadsheet"]
+        return spreadsheet_to_corpus(uploaded_file)
+    else:
+        corpus_metadata = CorpusMetadata.from_dict(request.form)
+        return create_corpus(corpus_metadata)
 
 
 def create_app() -> Flask:
@@ -235,12 +244,7 @@ def create_app() -> Flask:
     @app.route(f"{ROOT_PATH}/submit-form", methods=["GET", "POST"])
     @cross_origin()
     def make_corpus() -> str:
-        if request.files:
-            uploaded_file = request.files["spreadsheet"]
-            corpus: pd.DataFrame = spreadsheet_to_corpus(uploaded_file).frame
-        else:
-            corpus_metadata = CorpusMetadata.from_dict(request.form)
-            corpus: pd.DataFrame = create_corpus(corpus_metadata).frame
+        corpus: pd.DataFrame = get_corpus_from_request(request)
 
         # We need to get the document type from the corpus itself as the user may have uploaded their own corpus
         doctype = corpus["doctype"].unique().item()
@@ -254,26 +258,23 @@ def create_app() -> Flask:
     @app.route(f"{ROOT_PATH}/search_concordance", methods=["POST"])
     @cross_origin()
     def search_concordances() -> str:
-        uploaded_file = request.files["spreadsheet"]
-        corpus = spreadsheet_to_corpus(uploaded_file)
+        corpus = get_corpus_from_request(request)
         concordances = dhlab.text.conc_coll.Concordance(
             corpus,
             query=request.form.get("search"),
             limit=20,
             window=int(request.args.get("window", 20)),
-        )
+        ).frame
 
         return jinja_partials.render_partial(
             "concordance_results.html",
-            resultframe=process_concordance_results(concordances, corpus.frame),
+            resultframe=process_concordance_results(concordances, corpus),
         )
 
     @app.route(f"{ROOT_PATH}/search_collocation", methods=["POST"])
     @cross_origin()
     def search_collocations() -> str:
-        uploaded_file = request.files["spreadsheet"]
-
-        corpus = spreadsheet_to_corpus(uploaded_file)
+        corpus = get_corpus_from_request(request)
 
         reference_path = REFERENCE_PATH / request.form.get("ref_korpus")
         reference = pd.read_csv(
@@ -287,12 +288,10 @@ def create_app() -> Flask:
             after=int(request.form.get("words_after", 10)),
             samplesize=1000,
             reference=reference,
-        )
+        ).frame
 
         sorting_method = request.form.get("sorting_method")
-        coll_selected = coll.frame.dropna().sort_values(
-            ascending=False, by=sorting_method
-        )
+        coll_selected = coll.dropna().sort_values(ascending=False, by=sorting_method)
 
         max_coll = int(request.form.get("max_coll"))
         resultframe = coll_selected.head(max_coll)
