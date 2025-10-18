@@ -165,30 +165,32 @@ def spreadsheet_to_corpus(file) -> dhlab.Corpus:
     return urn_list_to_corpus(tuple(urn_list))
 
 
-def process_concordance_results(concordances, corpus):
+def process_concordance_results(
+    concordances: pd.DataFrame, corpus: pd.DataFrame
+) -> pd.DataFrame:
     def get_timeformat(df: pd.DataFrame) -> list[str]:
         return [
             "%Y-%m-%d" if doctype == "digavis" else "%Y" for doctype in df["doctype"]
         ]
 
     def get_timestamp(df: pd.DataFrame) -> pd.Series:
-        return pd.to_datetime(
+        timestamps = pd.to_datetime(
             df["timestamp"].astype(str), format="%Y%m%d", errors="coerce"
-        ).fillna(pd.Timestamp("1900-01-01"))
+        )
+        return timestamps.fillna(pd.Timestamp("1900-01-01"))
 
+    columns = [
+        "title",
+        "authors",
+        "year",
+        "timestamp",
+        "timeformat",
+        "concordance",
+        "link",
+    ]
     return pd.merge(concordances.frame, corpus, on="urn", how="left").assign(
         timeformat=get_timeformat, timestamp=get_timestamp
-    )[
-        [
-            "title",
-            "authors",
-            "year",
-            "timestamp",
-            "timeformat",
-            "concordance",
-            "link",
-        ]
-    ]
+    )[columns]
 
 
 def make_wordcloud(df, width=800, height=400, background_color="white"):
@@ -267,19 +269,16 @@ def create_app() -> Flask:
     def search_concordances() -> str:
         uploaded_file = request.files["spreadsheet"]
         corpus = spreadsheet_to_corpus(uploaded_file)
-
-        query = request.form.get("search")
-
-        window = int(request.args.get("window", 20))
-
         concordances = dhlab.text.conc_coll.Concordance(
-            corpus, query, limit=20, window=window
+            corpus,
+            query=request.form.get("search"),
+            limit=20,
+            window=int(request.args.get("window", 20)),
         )
 
-        resultframe = process_concordance_results(concordances, corpus.frame)
-
         return jinja_partials.render_partial(
-            "concordance_results.html", resultframe=resultframe
+            "concordance_results.html",
+            resultframe=process_concordance_results(concordances, corpus.frame),
         )
 
     @app.route(f"{ROOT_PATH}/search_collocation", methods=["POST"])
