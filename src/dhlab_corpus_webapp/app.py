@@ -159,18 +159,12 @@ def spreadsheet_to_corpus(file) -> pd.DataFrame:
     return urn_list_to_corpus(tuple(urn_list))
 
 
-def process_concordance_results(
-    concordances: pd.DataFrame, corpus: pd.DataFrame
-) -> pd.DataFrame:
+def process_concordance_results(concordances: pd.DataFrame, corpus: pd.DataFrame) -> pd.DataFrame:
     def get_timeformat(df: pd.DataFrame) -> list[str]:
-        return [
-            "%Y-%m-%d" if doctype == "digavis" else "%Y" for doctype in df["doctype"]
-        ]
+        return ["%Y-%m-%d" if doctype == "digavis" else "%Y" for doctype in df["doctype"]]
 
     def get_timestamp(df: pd.DataFrame) -> pd.Series:
-        timestamps = pd.to_datetime(
-            df["timestamp"].astype(str), format="%Y%m%d", errors="coerce"
-        )
+        timestamps = pd.to_datetime(df["timestamp"].astype(str), format="%Y%m%d", errors="coerce")
         return timestamps.fillna(pd.Timestamp("1900-01-01"))
 
     columns = [
@@ -277,9 +271,7 @@ def create_app() -> Flask:
         corpus = get_corpus_from_request(request)
 
         reference_path = REFERENCE_PATH / request.form.get("ref_korpus")
-        reference = pd.read_csv(
-            reference_path, index_col=0, header=None, names=["word", "freq"]
-        )
+        reference = pd.read_csv(reference_path, index_col=0, header=None, names=["word", "freq"])
 
         coll = dhlab.text.conc_coll.Collocations(
             corpus["urn"],
