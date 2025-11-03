@@ -46,4 +46,6 @@
     .gridded-container { grid-template-columns: 1fr; }
     .grid-column { grid-column: span 1; }
     .grid-column.large-field {grid-column: span 1;}
+
+    #update-corpus-form .grid-column:first-child {grid-column: span 1; }
 }

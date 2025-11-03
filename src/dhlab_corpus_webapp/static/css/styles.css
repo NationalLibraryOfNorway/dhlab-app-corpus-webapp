@@ -8,6 +8,28 @@
     --body-width: calc(var(--column-width)*6 + var(--small-margin)*7 + 2*var(--small-margin) + var(--border-width)) ;
     --sidebar-width: calc(var(--column-width) + 2*var(--small-margin));
     --border-radius: 6px;
+    --main-text-color: #000;
+}
+@media (prefers-color-scheme: dark){
+    :root {
+        --links: #BCD7F8;
+        --main-text-color: #fff;
+    }
+}
+
+
+/* Main body */
+
+h1 {
+    font-family: var(--nb-font-family-secondary);
+    color: var(--nb-secondary-color);
+    line-height: normal;
+}
+
+input, select {
+    font-family: var(--nb-font-family-secondary);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 body {
@@ -15,7 +37,18 @@ body {
     font-family: var(--nb-font-family);
     font-size: var(--font-size-s);
     line-height: 1.4rem;
+    color: var(--main-text-color)
 }
+
+a {
+    color:var(--links);
+    font-weight: var(--font-weight-medium)
+}
+@media (prefers-color-scheme: dark){
+    a {font-weight: var(--font-weight-bold)}
+}
+
+
 
 /* ---------------------------- */
 /* These are all for the banner */
@@ -25,6 +58,10 @@ body {
     display: flex;
     border-bottom: 1px solid var(--background-alt);
     justify-content: space-between;
+}
+
+.banner a{
+    font-weight: var(--font-weight-medium);
 }
 
 .banner a.app-name:hover, .banner a.logo:hover {
@@ -57,23 +94,6 @@ body {
 }
 
 /* ---------------------------- */
-
-/* Main body */
-
-a {
-    font-weight: var(--font-weight-medium);
-}
-
-h1 {
-    font-family: var(--nb-font-family-secondary);
-    color: var(--nb-secondary-color);
-}
-
-input, select {
-    font-family: var(--nb-font-family-secondary);
-    width: 100%;
-    box-sizing: border-box;
-}
 
 
 /* ---------------------------- */
