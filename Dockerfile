@@ -9,6 +9,5 @@ COPY README.md /app/README.md
 
 RUN uv sync --no-dev --compile-bytecode
 
-EXPOSE 5002
-
-CMD ["uv", "run", "--no-sync", "gunicorn", "--bind", "0.0.0.0:5002", "dhlab_corpus_webapp.app:app"]
+EXPOSE 8080
+CMD ["uv", "run", "--no-sync", "gunicorn", "--bind", "0.0.0.0:8080", "dhlab_corpus_webapp.app:app"]
