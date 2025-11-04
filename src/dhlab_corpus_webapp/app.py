@@ -213,7 +213,7 @@ def render_concordances_for_request(request: flask.Request) -> str:
 
     corpus, corpus_readme = get_corpus_from_request(request)
 
-    # check first if the corpus if emtpy, then no concordances are expected
+    # check first if the corpus is empty, then no concordances are expected
     if len(corpus) > 0:
         doctypes = corpus["doctype"].unique()
 
