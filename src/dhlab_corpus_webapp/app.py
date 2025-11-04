@@ -173,29 +173,28 @@ def render_corpus_table_for_request(request: flask.Request) -> str:
     download_stream = dhlab_corpus_webapp.export.create_corpus_zipfile(corpus, readme)
 
     # check for non-empty corpus, otherwise return empty table
-    if len(corpus) > 0:
-        doctypes = corpus["doctype"].unique()
-        if not doctypes:
-            doctype = "digibok"
-        elif len(doctypes) > 1:
-            return f"Feil: Korpustabell kan bare inneholde en dokumenttype. Ditt korpus inneholder {doctypes}", 406
-        doctype = doctypes.item()
-
-        corpus = parse_timestamp(corpus)
-        corpus = corpus.assign(
-            title=corpus.apply(lambda row: make_url(row.urn, row.title), axis="columns"),
-            timestamp=corpus.apply(lambda row: row.timestamp.strftime(row.timeformat), axis="columns"),
-        )[CORPUS_COLUMNS_FULL[doctype]]
-
-        # prepare data and table
-        corpus_html = corpus.to_html(table_id="results_table", classes=["display"], border=0, index=False, escape=False)
-        data_zip = base64.b64encode(download_stream.getvalue()).decode("utf-8")
-        column_definitions = json.dumps(get_corpus_column_definitions(corpus, doctype))
-    else:
-        corpus_html = None
-        data_zip = None
-        column_definitions = None
-
+    if not len(corpus):
+        return render_template(
+            "outputs/table.html",
+            res_table=None,
+            data_zip=None,
+            column_definitions=None,
+        )
+    doctypes = corpus["doctype"].unique()
+    if not doctypes:
+        doctype = "digibok"
+    elif len(doctypes) > 1:
+        return f"Feil: Korpustabell kan bare inneholde en dokumenttype. Ditt korpus inneholder {doctypes}", 406
+    doctype = doctypes.item()
+    corpus = parse_timestamp(corpus)
+    corpus = corpus.assign(
+        title=corpus.apply(lambda row: make_url(row.urn, row.title), axis="columns"),
+        timestamp=corpus.apply(lambda row: row.timestamp.strftime(row.timeformat), axis="columns"),
+    )[CORPUS_COLUMNS_FULL[doctype]]
+    # prepare data and table
+    corpus_html = corpus.to_html(table_id="results_table", classes=["display"], border=0, index=False, escape=False)
+    data_zip = base64.b64encode(download_stream.getvalue()).decode("utf-8")
+    column_definitions = json.dumps(get_corpus_column_definitions(corpus, doctype))
     return render_template(
         "outputs/table.html",
         res_table=corpus_html,
@@ -214,32 +213,26 @@ def render_concordances_for_request(request: flask.Request) -> str:
     corpus, corpus_readme = get_corpus_from_request(request)
 
     # check first if the corpus is empty, then no concordances are expected
-    if len(corpus) > 0:
-        doctypes = corpus["doctype"].unique()
-
-        concordances = dhlab.text.conc_coll.Concordance(
-            corpus, query=request.form.get("search"), limit=limit, window=window
-        ).frame
-    else:
-        doctypes = None
-        concordances = None
-
-    # check if we got any concordances from the corpus
-    if concordances is not None:
-        processed_conc = process_concordance_results(concordances, corpus)
-        download_stream = dhlab_corpus_webapp.export.create_concordance_zipfile(
-            corpus=corpus, corpus_readme=corpus_readme, concordances=processed_conc
+    if not len(corpus):
+        return jinja_partials.render_partial(
+            "outputs/concordance.html",
+            concordances=None,
+            data_zip=None,
+            query=None,
+            doctypes=None,
         )
-
-        data_zip = base64.b64encode(download_stream.getvalue()).decode("utf-8")
-    else:
-        data_zip = None
-        processed_conc = pd.DataFrame()
-
+    doctypes = corpus["doctype"].unique()
+    concordances = dhlab.text.conc_coll.Concordance(
+        corpus, query=request.form.get("search"), limit=limit, window=window
+    ).frame
+    processed_conc = process_concordance_results(concordances, corpus)
+    download_stream = dhlab_corpus_webapp.export.create_concordance_zipfile(
+        corpus=corpus, corpus_readme=corpus_readme, concordances=processed_conc
+    )
     return jinja_partials.render_partial(
         "outputs/concordance.html",
         concordances=processed_conc,
-        data_zip=data_zip,
+        data_zip=base64.b64encode(download_stream.getvalue()).decode("utf-8"),
         query=query,
         doctypes=doctypes,
     )
