@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'components/head.html' %}
+
+    <title>{{ app_name }}</title>
+</head>
+<body>
+    <main>
+        <header>
+            {% include 'components/banner.html' with context %}
+            <h1>Bygg og utforsk et DH-LAB-korpus</h1>
+
+            <p>
+                Denne appen lar deg bygge et korpus basert på <a target=_blank rel=noopener href="https://www.nb.no/search">Nasjonalbibliotekets samling</a>.
+                Du kan så velge å vise korpuset direkte som <em>tabell</em> eller dykke dypere og utforske <em>kollokasjoner</em> eller <em>konkordanser</em> i korpuset.
+                Korpustabellen kan også brukes i andre <a target=_blank rel=noopener href="https://www.nb.no/dh-lab/apper/">DH-LAB-apper</a>.
+            </p>
+
+        </header>
+
+        <details open>
+            <summary>Vis/skjul korpusdefinisjon</summary>
+
+            <label for="corpus-builder-method">Velg om du vil definere korpus eller laste opp et ferdigdefinert korpus:</label>
+            <select
+                name="corpus-builder-method"
+                id="corpus-builder-method"
+                hx-get="corpus-definition-method"
+                hx-target="#search-form-corpus"
+                hx-trigger="change, load"
+                hx-request='{"noHeaders": true}'
+            >
+                <option value="build_corpus">Bygg korpus basert på valg</option>
+                <option value="upload_corpus">Last opp korpusdefinisjon</option>
+            </select>
+
+            <form id="search-form-corpus">
+                {% include 'corpus_definition/build_corpus.html' with context %}
+            </form>
+        </details>
+
+
+            <form
+                id="exploration-method-form"
+                hx-get="exploration-method"
+                hx-target="#update-corpus-form"
+                hx-trigger="change, load"
+                hx-request='{"noHeaders": true}'
+            >
+
+                <span>Utforskingsmetode:</span>
+                <span class="method-option-container">
+                    <input type="radio" id="table" name="method" value="table" checked />
+                    <label for="table">Korpustabell</label>
+                </span>
+                <span class="method-option-container">
+                    <input type="radio" id="concordance" name="method" value="concordance" />
+                    <label for="concordance">Konkordanser</label>
+                </span>
+                <span class="method-option-container">
+                    <input type="radio" id="collocations" name="method" value="collocations" />
+                    <label for="collocations">Kollokasjoner</label>
+                </span>
+            </form>
+
+
+        <div id="corpus-exploration">
+            <form id="update-corpus-form"
+                hx-post="explore"
+                hx-encoding="multipart/form-data"
+                hx-target="#output"
+                hx-trigger="submit"
+                hx-indicator="#loading"
+            >
+            </form>
+            <div id="loading">
+                <div>Henter ut resultater</div>
+                <span class="loader"></span>
+            </div>
+        </div>
+
+        <div id="output"></div>
+
+    </main>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<input type="hidden" name="exploration-method" value="table">
+<span class="table-view-option-container">
+    <input type="radio" name="table_mode" value="simple" checked>
+    <label for="table-mode-simple">Enkel visning</label>
+</span>
+<span class="table-view-option-container">
+    <input type="radio" name="table_mode" value="detailed">
+    <label for="table-mode-full">Detaljert visning</label>
+</span>
+
+<input class="build-btn" type="submit" name="update-search" value="Hent korpustabell">
+
+<script>
+    /*
+    The changed event of radio button only triggers when a button becomes checked, not when it is "unchecked"
+
+    We can therefore add on change events to update the table mode
+    */
+    for (let el of document.getElementsByName("table_mode")) {
+        el.addEventListener("change", (event) => updateTableMode(event.target.value));
+    }
+    updateTableMode("simple"); // To "reset" the table mode if we change corpus exploration mode
+</script>

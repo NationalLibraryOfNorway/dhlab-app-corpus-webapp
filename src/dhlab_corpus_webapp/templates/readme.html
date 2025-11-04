@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+<head>
+    {% include 'components/head.html' %}
+  <title>Om korpusutforskeren</title>
+</head>
+<body>
+    <main>
+        <header>
+            {% include 'components/banner.html' with context %}
+        <h1>Hvordan fungerer appen? </h1>
+        <p>Kildekoden til appen ligger <a href="https://github.com/NationalLibraryOfNorway/dhlab-corpus-webapp" target="_blank">GitHub</a></p>
+        </header>
+        <h2>Korpus</h2>
+        <p>
+        Et DH-LAB-korpus er et sett unike identifikatorer (URN-er) fra Nasjonalbibliotekets samling.
+        Ved bruk av disse identifikatorene kan man gjøre analyser på opphavsrettsbeskyttet tekst.
+        Analysene skjer på Nasjonalbibliotekets servere, og brukeren kun får tilgang til <em>aggregater</em>.
+        </p>
+        <p>
+        Korpuset kan brukes videre i DH-LAB-analyser.
+        I denne appen er det lagt til rette for konkordans- og kollokasjonanalyse.
+        </p>
+        <p>
+        Nedlastingsknappen gir korpustabellen og en fil med søkeparameterne som er brukt, i tillegg til tidspunktet for genereringen.
+        Korpustabellen kan redigeres og lastes opp til appen igjen.
+        Korpustabellen kan også brukes i andre DH-LAB-apper.
+        </p>
+        <h3>Dokumenttyper</h3>
+        <p>
+        DH-LAB tilbyr følgende dokumenttyper:</p>
+        <dl>
+            <dt>Bøker:</dt>
+            <dd>henter objekter av typen digibok, pliktmonografi og digiebok fra <a href="https://www.nb.no/search?mediatype=b%C3%B8ker">Nettbibiblioteket</a></dd>
+            <dt>Aviser:</dt>
+            <dd>henter objekter av typen digavis fra <a href="https://www.nb.no/search?mediatype=aviser">Nettbiblioteket</a></dd>
+            <dt>Tidsskrift:</dt>
+            <dd>henter objekter av typen digitidsskrift fra <a href="https://www.nb.no/search?mediatype=tidsskrift">Nettbiblioteket</a></dd>
+            <dt>Brev og manuskripter:</dt>
+            <dd>henter objekter av typen digimanus fra <a href="https://www.nb.no/search?mediatype=brev-og-manuskripter">Nettbbiblioteket</a> (obs: kun en liten andel av dette materialet er søkbart, pga begrenset OCR/HTR)</dd>
+            <dt>Stortingsforhandlinger:</dt>
+            <dd>Nettbiblioteket</dd>
+            <dt>Kudos:</dt>
+            <dd><a href="https://kudos.dfo.no/">Kunnskapsdokumenter i offentlig sektor</a> (-2023)</dd>
+            <dt>Nettavis:</dt>
+            <dd>Nettaviser (2019-2022) fra Nettarkivet</dd>
+        </dl>
+
+
+
+        <h3>Metadata</h3>
+        <p>Søket begrenses kun av felt som er fylt ut.</p>
+        <dl>
+            <dt>Språk:</dt>
+            <dd>det er mulig å avgrense søket til ett eller flere språk fra listen</dd>
+            <dt>Forfatter:</dt>
+            <dd>
+                Fulltekstsøk. <kbd>Henrik Ibsen</kbd> eller <kbd>Ibsen, Henrik</kbd> gir samme treff.
+                <kbd>Bing Bringsværd</kbd> gir treff der både Jon Bing og Tor Åge Bringsværd er forfattere.
+                <kbd>Bing NOT Bringsværd</kbd> gir treff der Bing er forfatter, men ikke Bringsværd.
+            </dd>
+            <dt>Tittel:</dt>
+            <dd>Fulltekstsøk. Skriv deler av eller hele titler. Logiske operatorer <kbd>(AND, OR, NOT)</kbd> kan brukes.</dd>
+            <dt>Ord eller fraser i teksten:</dt>
+            <dd>
+                Fulltekstsøk i selve teksten.
+                Logiske operatorer <kbd>(AND, OR, NOT)</kbd> kan brukes.
+                Nærhetssøk <kbd>NEAR(ord1 ord2, antall ord mellom)</kbd>
+            </dd>
+            <dt>Emneord:</dt>
+            <dd>frie emneord</dd>
+            <dt>Dewey desimaltall:</dt>
+            <dd>
+                <a href="https://deweysearchno.pansoft.de/webdeweysearch/">https://deweysearchno.pansoft.de/webdeweysearch/</a>
+            </dd>
+
+        </dl>
+
+        <p>Alle metadata, bortsett fra Kudos og Nettavis, er hentet fra <a
+        href="https://api.nb.no/?urls.primaryName=metadata#/metadata/getMods">https://api.nb.no/?urls.primaryName=metadata#/metadata/getMods</a></p>
+
+
+        <h2>Konkordanser - søkeordord med kontekst</h2>
+        <p>
+            Søkeuttrykk kan være ett ord, flere ord eller en frase i.
+            Hvis det ikke oppgis en logisk operator <kbd>(AND, OR, NOT)</kbd>, vil logisk <kbd>AND</kbd> brukes. Søket <kbd>vaksine forskning</kbd> gir treff i avsnitt som inneholder både ordet <kbd>vaksine</kbd> og <kbd>forskning</kbd>.
+            Det er også mulig å angi et to ord skal stå i nærheten av hverandre, f.eks. vil <kbd>NEAR(vaksine forskning, 5)</kbd> gi treff der <kbd>vaksine</kbd> og <kbd>forskning</kbd> opptrer innenfor et vindu av fem ord.
+        </p>
+        <p>
+            Appen lager et tilfeldig uttrekk (sample) fra samlingen basert på parameterne i korpusdefinisjonen. Det kan være lurt å stille på disse parameterne for å få mer kontroll over korpuset.
+            Hvis du søker på et sjeldent ord og/eller ønsker et større uttrekk, øk sample-verdien. For å være sikker på at ord du ønsker å søke på faktisk er inneholdt i uttrekket, bruk feltet <kbd>Ord eller fraser i teksten</kbd>.
+        </p>
+        <p>
+            Søkemotoren gir treff på avsnittsnivå. Hvis det er flere treff innenfor et avsnitt, vil kun første treff fra det aktuelle avsnittet vises.
+        </p>
+        <h2>Kollokasjoner - assosierte ord</h2>
+        <p>
+            Det er kun mulig å søke på enkeltord.
+            Søk f.eks. på vaksine for å finne ord (enkeltord) som opptrer sammen med vaksine.
+        </p>
+        <p>
+            Appen lager et tilfeldig uttrekk (sample) fra samlingen basert på parameterne i korpusdefinisjonen.
+            Det kan være lurt å stille på disse parameterne for å få mer kontroll over korpuset.
+            Hvis du søker på et sjeldent ord og/eller ønsker et større uttrekk, øk sample-verdien.
+            For å være sikker på at ord du ønsker å søke på faktisk er inneholdt i uttrekket, bruk feltet <kbd>Ord eller fraser i teksten</kbd>.
+        </p>
+        <p>
+            Konteksten for kollokasjonen kan justeres med antall ord før og etter basisord.
+            For best mulig beregning av relevans, velg et referansekorpus fra samme periode som korpuset.
+            Terskelverdi for relevans og råfrekvens angir hvor mange tilfeller av et ord som må finnes før det regnes med.
+        </p>
+        <p>
+            Det statistiske kollokasjonsmålet som brukes her, er en variant av PMI (pointwise mutual information), med sannsynligheter som proporsjoner av frekvens, på formen: 𝑝𝑚𝑖(𝑥,𝑦)=𝑝(𝑥|𝑦)𝑝(𝑥)=𝑝(𝑦|𝑥)𝑝(𝑦).
+            Det kan ses på som en probabilistisk versjon av relevans, dvs. at y er relevant x og omvendt.
+            PMI er brukt i stedet for tf-idf for å beregne assosisasjoner mellom ord.
+            PMI-verdiene er beregnet på normaliserte frekvenser (relativfrekvenser) som betyr at det faktiske tallet kan tolkes som et disproporsjonalt tall.
+        </p>
+    </main>
+</body>
+</html>

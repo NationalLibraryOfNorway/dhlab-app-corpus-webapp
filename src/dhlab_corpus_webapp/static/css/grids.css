@@ -1,0 +1,51 @@
+.gridded-container {
+    display: grid;
+    gap: var(--small-margin);
+    width: auto;
+    grid-template-columns: repeat(6, 1fr);
+}
+
+.gridded-container select, .gridded-container input{
+    /*
+    water.css sets select and input tags to display block.
+    We need to overwrite this here for the grid to work properly.
+    */
+    display: inline-block;
+}
+
+
+
+.grid-column {
+    grid-column: span 2;
+}
+
+.grid-column.small-field {
+    grid-column: span 1;
+}
+.grid-column.large-field {
+    grid-column: span 6;
+}
+
+.grid-column.datatable-container {
+    grid-column: span 3;
+
+}
+.grid-column.wordcloud-container {
+    grid-column: span 3;
+
+}
+
+@media (max-width: 1174px) {
+    .gridded-container { grid-template-columns: repeat(2, 1fr); }
+    .grid-column { grid-column: span 1; }
+    .grid-column.large-field {grid-column: span 1;}
+    #update-corpus-form .grid-column:first-child {grid-column: span 2; }
+}
+
+@media (max-width: 794px) {
+    .gridded-container { grid-template-columns: 1fr; }
+    .grid-column { grid-column: span 1; }
+    .grid-column.large-field {grid-column: span 1;}
+
+    #update-corpus-form .grid-column:first-child {grid-column: span 1; }
+}

@@ -1,320 +1,328 @@
-from functools import lru_cache
-from flask import Flask, render_template, request, session
-from dataclasses import dataclass, asdict
-import dhlab as dh
-import dhlab.api.dhlab_api as dhlab_api
-import dhlab.text.conc_coll as cc
-import pandas as pd
-from flask_cors import cross_origin
-from flask_cors import CORS
-import dhlab.text.conc_coll as conc_coll
-import jinja_partials
-from typing import Self
-from wordcloud import WordCloud
-import matplotlib
-matplotlib.use("agg")  # We must set the backend before importing pyplot
-import matplotlib.pyplot as plt
-import io
 import base64
-from whitenoise import WhiteNoise
+import io
+import json
 import os
 from pathlib import Path
+from typing import NotRequired, TypedDict
 
+import flask
+import pandas as pd
+import dhlab as dhlab
+import dhlab.text.conc_coll
+import jinja_partials
+from flask import Flask, render_template, request
+from flask_cors import cross_origin
+from wordcloud import WordCloud
+
+import dhlab_corpus_webapp.export
+from dhlab_corpus_webapp.corpus import get_corpus_from_request
 
 ROOT_PATH = os.environ.get("ROOT_PATH", "")
+DATA_PATH = Path(__file__).parent / "static/data"
+REFERENCE_PATH = DATA_PATH / "reference_corpora"
+LANGUAGES = json.loads((DATA_PATH / "languages.json").read_text(encoding="utf-8"))
+CORPUS_COLUMNS_FULL: dict[str, list[str]] = {
+    "digibok": [
+        "dhlabid",
+        "urn",
+        "title",
+        "authors",
+        "city",
+        "timestamp",
+        "year",
+        "publisher",
+        "ddc",
+        "subjects",
+        "langs",
+    ],
+    "digavis": ["dhlabid", "urn", "title", "city", "timestamp", "year"],
+    "digitidsskrift": [
+        "dhlabid",
+        "urn",
+        "title",
+        "city",
+        "timestamp",
+        "year",
+        "publisher",
+        "ddc",
+        "subjects",
+        "langs",
+    ],
+    "digistorting": ["dhlabid", "urn", "title", "year"],
+    "digimanus": ["dhlabid", "urn", "title", "authors", "timestamp", "year"],
+    "kudos": [
+        "dhlabid",
+        "urn",
+        "title",
+        "authors",
+        "timestamp",
+        "year",
+        "publisher",
+        "langs",
+    ],
+    "nettavis": [
+        "dhlabid",
+        "urn",
+        "title",
+        "city",
+        "timestamp",
+        "year",
+        "publisher",
+        "langs",
+    ],
+}
+CORPUS_COLUMNS_MINIMAL: dict[str, list[str]] = {
+    "digibok": ["authors", "title", "timestamp"],
+    "digavis": ["title", "timestamp"],
+    "digitidsskrift": ["title", "timestamp"],
+    "digistorting": ["title", "timestamp"],
+    "digimanus": ["authors", "title", "timestamp"],
+    "kudos": ["authors", "title", "timestamp"],
+    "nettavis": ["title", "timestamp"],
+}
+COLUMN_NAMES = {
+    "urn": "URN",
+    "authors": "Forfattere",
+    "title": "Tittel",
+    "city": "Sted",
+    "timestamp": "Tidspunkt",
+    "year": "År",
+    "publisher": "Utgiver",
+    "ddc": "Dewey",
+    "subjects": "Emner",
+    "langs": "Språk",
+}
+
+REFERENCES = {
+    "Generisk referanse (1800-2022)": "nob-nno_1800_2022.csv",
+    "Nåtidig bokmål (2000-)": "nob_2000_2022.csv",
+    "Nåtidig nynorsk (2000-)": "nno_2000_2022.csv",
+    "Bokmål (1950-2000)": "nob_1950_2000.csv",
+    "Nynorsk (1950-2000)": "nno_1950_2000.csv",
+    "Bokmål (1920-1950)": "nob_1920_1950.csv",
+    "Nynorsk (1920-1950)": "nno_1920_1950.csv",
+    "Bokmål (1875-1920)": "nob_1875_1920.csv",
+    "Nynorsk (1875-1920)": "nno_1875_1920.csv",
+    "Tidlig dansk-norsk/bokmål (før 1875)": "nob_1800_1875.csv",
+    "Tidlig nynorsk (før 1875)": "nob_1848_1875.csv",
+}
+
+
+def parse_timestamp(corpus: pd.DataFrame) -> pd.DataFrame:
+    def get_timeformat(df: pd.DataFrame) -> list[str]:
+        return ["%d. %b %Y" if doctype == "digavis" else "%Y" for doctype in df["doctype"]]
+
+    def get_timestamp(df: pd.DataFrame) -> pd.Series:
+        timestamps = pd.to_datetime(df["timestamp"].astype(str), format="%Y%m%d", errors="coerce")
+        return timestamps.fillna(pd.Timestamp("1900-01-01"))
+
+    return corpus.assign(timeformat=get_timeformat, timestamp=get_timestamp)
+
+
+def process_concordance_results(concordances: pd.DataFrame, corpus: pd.DataFrame) -> pd.DataFrame:
+    return pd.merge(concordances, parse_timestamp(corpus), on="urn", how="left")
+
+
+def make_wordcloud(df: pd.DataFrame) -> io.BytesIO:
+    index_series = df.index.to_series()
+    words = index_series.str.replace(r"\s+\d+$", "", regex=True)
+    word_freq = dict(zip(words, df["relevance"]))
+
+    wc = WordCloud(width=800, height=400, background_color="white", max_words=100)
+    wc.generate_from_frequencies(word_freq)
+
+    img_stream = io.BytesIO()
+    wc.to_image().save(img_stream, format="PNG")
+
+    img_stream.seek(0)
+    return img_stream
+
+
+class DataTablesColumnDef(TypedDict):
+    target: int
+    name: NotRequired[str]
+    title: NotRequired[str]
+    visible: NotRequired[bool]
+
+
+def get_corpus_column_definitions(corpus: pd.DataFrame, doctype: str) -> list[DataTablesColumnDef]:
+    return [
+        {
+            "target": i,
+            "name": column,
+            "title": COLUMN_NAMES.get(column, column),
+            "visible": column in CORPUS_COLUMNS_MINIMAL[doctype],
+        }
+        for i, column in enumerate(corpus.columns)
+    ]
+
+
+def make_url(urn: str, title: str) -> str:
+    """Turn title and URN into an URL
+
+    If the title is missing, the URN is used as the anchor text. This fixes an issue where digistorting corpora
+    doesn't have titles.
+    """
+    if not title:
+        title = urn
+    return f'<a href="https://www.nb.no/items/{urn}" target="_blank">{title}</a>'
+
+
+def render_corpus_table_for_request(request: flask.Request) -> str:
+    corpus, readme = get_corpus_from_request(request)
+    download_stream = dhlab_corpus_webapp.export.create_corpus_zipfile(corpus, readme)
+
+    doctypes = corpus["doctype"].unique()
+    if not doctypes:
+        doctype = "digibok"
+    elif len(doctypes) > 1:
+        return f"Feil: Korpustabell kan bare inneholde en dokumenttype. Ditt korpus inneholder {doctypes}", 406
+    doctype = doctypes.item()
+
+    corpus = parse_timestamp(corpus)
+    corpus = corpus.assign(
+        title=corpus.apply(lambda row: make_url(row.urn, row.title), axis="columns"),
+        timestamp=corpus.apply(lambda row: row.timestamp.strftime(row.timeformat), axis="columns"),
+    )[CORPUS_COLUMNS_FULL[doctype]]
+
+    corpus_html = corpus.to_html(table_id="results_table", classes=["display"], border=0, index=False, escape=False)
+    return render_template(
+        "outputs/table.html",
+        res_table=corpus_html,
+        data_zip=base64.b64encode(download_stream.getvalue()).decode("utf-8"),
+        column_definitions=json.dumps(get_corpus_column_definitions(corpus, doctype)),
+    )
+
+
+def render_concordances_for_request(request: flask.Request) -> str:
+    if (limit := int(request.form.get("limit"))) > 1000:
+        return flask.Response(f"Limit too high, is {limit}, must be less than 1000", status=400)
+    if (window := int(request.form.get("window"))) > 25:
+        return flask.Response(f"Window is too large, is {window}, must be less than 25", status=400)
+    query = request.form.get("search")
+
+    corpus, corpus_readme = get_corpus_from_request(request)
+    doctypes = corpus["doctype"].unique()
+
+    concordances = dhlab.text.conc_coll.Concordance(
+        corpus, query=request.form.get("search"), limit=limit, window=window
+    ).frame
+    processed_conc = process_concordance_results(concordances, corpus)
+    download_stream = dhlab_corpus_webapp.export.create_concordance_zipfile(
+        corpus=corpus, corpus_readme=corpus_readme, concordances=processed_conc
+    )
+
+    return jinja_partials.render_partial(
+        "outputs/concordance.html",
+        concordances=processed_conc,
+        data_zip=base64.b64encode(download_stream.getvalue()).decode("utf-8"),
+        query=query,
+        doctypes=doctypes,
+    )
+
+
+def render_collocations_for_request(request: flask.Request) -> str:
+    corpus, corpus_readme = get_corpus_from_request(request)
+
+    # Load reference corpus
+    reference_path = REFERENCE_PATH / REFERENCES.get(request.form.get("ref_korpus"))
+    reference = pd.read_csv(reference_path, index_col=0, header=None, names=["word", "freq"])
+
+    # Create collocations dataframe sorted by the specified method
+    coll = dhlab.text.conc_coll.Collocations(
+        corpus["urn"],
+        words=request.form.get("search"),
+        before=int(request.form.get("words_before", 10)),
+        after=int(request.form.get("words_after", 10)),
+        samplesize=1000,
+        reference=reference,
+    ).frame
+    sorting_method = request.form.get("sorting_method")
+    coll_selected = coll.dropna().sort_values(ascending=False, by=sorting_method)
+
+    # Truncate results and create wordcloud
+    max_coll = int(request.form.get("max_coll"))
+    resultframe = coll_selected.head(max_coll)
+    wordcloud_image = make_wordcloud(resultframe)
+
+    # Setup collocations zip file
+    download_stream = dhlab_corpus_webapp.export.create_collocations_zipfile(
+        corpus, corpus_readme, resultframe, wordcloud_image
+    )
+
+    return render_template(
+        "outputs/collocations.html",
+        resultframe=resultframe,
+        wordcloud_image=base64.b64encode(wordcloud_image.getvalue()).decode("utf-8"),
+        order_by=sorting_method,
+        data_zip=base64.b64encode(download_stream.getvalue()).decode("utf-8"),
+    )
+
 
 def create_app() -> Flask:
     app = Flask(__name__)
-    app.secret_key = "superhemmelig-noekkel"
-    static_root_path = Path(__file__).parent / "static"
-    app.wsgi_app = WhiteNoise(app.wsgi_app, root=static_root_path, prefix=ROOT_PATH)
 
     @app.route(f"{ROOT_PATH}/")
-    @cross_origin() 
+    @app.route(f"{ROOT_PATH}/index.html")
+    @cross_origin()
     def index() -> str:
         return render_template(
-            "index_base.html",
-            app_title="Korpus | Konkordanser | Kollokasjoner",
-            app_name="Korpus | Konkordanser | Kollokasjoner",
-        )
-    
-    @app.route(f"{ROOT_PATH}/corpus-method", methods=['GET', 'POST'])
-    @cross_origin() 
-    def corpus_method() -> str:
-        type_ = request.args.get("type_")
-        if type_ == "build_corpus":
-            return render_template("corpus_builder.html")
-        elif type_ == "upload_corpus":
-            return render_template("corpus_uploader.html")
-        else:
-            raise ValueError(f"Unknown corpus method: {type_}")
-
-    @app.route(f"{ROOT_PATH}/submit-form", methods=['GET', 'POST'])
-    @cross_origin() 
-    def make_corpus() -> str:
-        if request.files:
-            session.pop('corpus_metadata', None)
-            uploaded_file = request.files['spreadsheet']
-
-            corpus = speadsheet_to_corpus(uploaded_file)
-
-            session['urn_list'] = corpus['urn'].tolist()
-
-            #corpus = corpus.frame 
-
-        else:
-            session.pop('urn_list', None)
-            corpus_metadata = CorpusMetadata.from_dict(request.form)
-            
-            session['corpus_metadata'] = asdict(corpus_metadata)
-            
-            corpus = create_corpus(corpus_metadata)
-
-        return render_template(
-            "table.html",
-            res_table=corpus.to_html(table_id="results_table", border=0),
+            "index.html",
+            languages=LANGUAGES,
+            app_name="Korpusutforsker",
+            banner_link_url="readme.html",
+            banner_link_text="Om appen",
         )
 
-    @app.route(f"{ROOT_PATH}/search-form-action")
-    @cross_origin() 
-    def choose_action() -> str:
-        type_ = request.args.get("type_")
-
-        if type_ == "show-corpus-table":
-            corpus = get_corpus_from_session()
-
-            doctype = corpus["doctype"].iloc[0]
-
-            return render_template(
-            "table.html",
-            res_table=corpus.to_html(table_id="results_table", border=0),
-        )
-
-        elif type_ == "search-collocation":
-            return render_template("search-collocation.html")
-        elif type_ == "search-concordance":
-            return render_template("search-concordance.html")
-        else:
-            raise ValueError(f"Unknown action: {type_}")
-    
-    @app.route(f"{ROOT_PATH}/search_concordance")
+    @app.route(f"{ROOT_PATH}/readme.html")
     @cross_origin()
-    def search_concordances() -> str:
-        
-        corpus = get_corpus_from_session()
-
-        query = request.args.get("search")
-        window = int(request.args.get("window", 20))
-        #concordances = conc_coll.Concordance(corpus, query, limit=10, window=window)
-        concordances = cc.Concordance(corpus, query, limit=10, window=window)
-
-        resultframe = process_concordance_results(concordances, corpus)
-        
-        return jinja_partials.render_partial(
-            "concordance_results.html",
-            resultframe=resultframe
-        )
-    
-    @app.route(f"{ROOT_PATH}/search_collocation")
-    @cross_origin()
-    def search_collocations() -> str:
-
-        corpus = get_corpus_from_session()
-        words = request.args.get("search")
-        words_before = request.args.get("words_before", 10)
-        words_after = request.args.get("words_after", 10)
-        reference_corp = request.args.get("ref_korpus", 10)
-        max_coll = request.args.get("max_coll")
-        sorting_method = request.args.get("sorting_method")
-        reference_path = f"reference/{reference_corp}"
-        reference = read_csv(reference_path)
-        
-        #coll = corpus.coll(words=words, before=int(words_before), after=int(words_after), samplesize=1000, reference=reference)
-        coll = cc.Collocations(corpus["urn"], words=words, before=int(words_before), after=int(words_after), samplesize=1000, reference=reference)
-        coll = coll.frame
-        coll_selected = coll.sort_values(ascending=False, by=sorting_method)
-        resultframe = coll_selected.head(int(max_coll))
-
-        wordcloud_image = make_wordcloud(resultframe)
-        
+    def readme() -> str:
         return render_template(
-            "collocation_results.html",
-            resultframe=resultframe,
-            wordcloud_image=wordcloud_image
+            "readme.html",
+            app_name="Korpusutforsker",
+            banner_link_url="index.html",
+            banner_link_text="Tilbake til appen",
         )
+
+    @app.route(f"{ROOT_PATH}/corpus-definition-method", methods=["GET"])
+    @cross_origin()
+    def corpus_definition_method() -> str:
+        if request.args.get("corpus-builder-method") == "upload_corpus":
+            return render_template("corpus_definition/upload_corpus.html")
+
+        return render_template("corpus_definition/build_corpus.html", languages=LANGUAGES)
+
+    @app.route(f"{ROOT_PATH}/exploration-method", methods=["GET"])
+    @cross_origin()
+    def exploration_method() -> str | flask.Response:
+        selected_option = request.args.get("method")
+        if selected_option == "table":
+            return render_template("exploration_methods/table.html")
+        elif selected_option == "collocations":
+            return render_template("exploration_methods/collocations.html", reference_corpora=REFERENCES)
+        elif selected_option == "concordance":
+            return render_template("exploration_methods/concordance.html")
+        else:
+            return flask.Response(f"Invalid exploration method {selected_option}", status=400)
+
+    @app.route(f"{ROOT_PATH}/explore", methods=["POST"])
+    @cross_origin()
+    def explore_corpus() -> str:
+        exploration_method = request.form.get("exploration-method")
+
+        if exploration_method == "table":
+            return render_corpus_table_for_request(request)
+        elif exploration_method == "collocations":
+            return render_collocations_for_request(request)
+        elif exploration_method == "concordance":
+            return render_concordances_for_request(request)
+        else:
+            return flask.Response(f"Invalid exploration method: {exploration_method}", status=400)
 
     return app
 
-def read_csv(reference_path) -> pd.DataFrame:
-    try:
-        reference_df = pd.read_csv(reference_path)
-        reference_df.columns = ["word", "freq"]
-        reference = reference_df.set_index("word")
-    except:
-        print("Statisk referansekorpus kunne ikke hentes. Se på parametrene for korpuset eller prøv igjen.")
-
-    return reference
-
-def get_corpus_from_session() -> dh.Corpus:
-    if 'urn_list' in session:
-        corpus = dh.Corpus()
-        corpus.extend_from_identifiers(session['urn_list'])
-        corpus = corpus.frame
-    elif 'corpus_metadata' in session:
-        corpus_metadata = CorpusMetadata(**session['corpus_metadata'])
-        corpus = create_corpus(corpus_metadata)
-    else:
-        raise ValueError("No corpus data found in session")
-    
-    return corpus
-
-def process_concordance_results(concordances, corpus):
-    def get_timeformat(df: pd.DataFrame) -> list[str]:
-        return [
-            "%Y-%m-%d" if doctype == "digavis" else "%Y"
-            for doctype in df["doctype"]
-        ]
-
-    def get_timestamp(df: pd.DataFrame) -> pd.Series:
-        return pd.to_datetime(
-            df["timestamp"].astype(str), 
-            format="%Y%m%d", 
-            errors="coerce"
-        ).fillna(pd.Timestamp('1900-01-01'))
-
-    return pd.merge(
-        concordances.frame, 
-        corpus, 
-        on="urn", 
-        how="left"
-    ).assign(
-        timeformat=get_timeformat,
-        timestamp=get_timestamp
-    )[[
-        "title",
-        "authors",
-        "year",
-        "timestamp",
-        "timeformat",
-        "concordance",
-        "link",
-    ]]
-
-def make_wordcloud(df, width=800, height=400, background_color='white'): 
-
-    index_series = df.index.to_series()
-    words = index_series.str.replace(r'\s+\d+$', '', regex=True)
-    word_freq = dict(zip(words, df['relevance']))
-    
-    wc = WordCloud(width=width, 
-                  height=height, 
-                  background_color=background_color,
-                  max_words=100)
-    
-    wc.generate_from_frequencies(word_freq)
-    
-    img = io.BytesIO()
-    plt.figure(figsize=(10, 5))
-    plt.imshow(wc, interpolation='bilinear')
-    plt.axis('off')
-    plt.savefig(img, format='png', bbox_inches='tight', pad_inches=0)
-    plt.close()
-    
-    img.seek(0)
-    img_str = base64.b64encode(img.getvalue()).decode()
-    
-    return img_str
-
-@dataclass(frozen=True)
-class CorpusMetadata:
-    document_type: str
-    language: str | None
-    author: str | None
-    title: str | None
-    words_or_phrases: str | None
-    key_words: str | None
-    dewey: str | None
-    subject: str | None
-    from_year: str | None
-    to_year: str | None
-    search_type: str
-    num_docs: int
-    corpus_name: str
-
-    @classmethod
-    def from_dict(cls, data: dict[str, str]) -> Self:
-        return cls(
-            document_type=data.get("doc_type_selection"),
-            language=data.get("language"),
-            author=data.get("author"),
-            title=data.get("title"),
-            words_or_phrases=data.get("words_or_phrases"),
-            key_words=data.get("key_words"),
-            dewey=data.get("dewey"),
-            subject=data.get("subject"),
-            from_year=data.get("from_year"),
-            to_year=data.get("to_year"),
-            search_type=data.get("search_type", "random"),
-            num_docs=int(data.get("num_docs", 2000)),
-            corpus_name=data.get("corpus_name"),
-        )
-
-
-@lru_cache
-def create_corpus(corpus_metadata: CorpusMetadata) -> dh.Corpus:
-    dh_corpus_object = dhlab_api.document_corpus(
-        doctype=corpus_metadata.document_type,
-        author=corpus_metadata.author,
-        freetext=None,
-        fulltext=corpus_metadata.words_or_phrases,
-        from_year=corpus_metadata.from_year,
-        to_year=corpus_metadata.to_year,
-        from_timestamp=None,
-        title=corpus_metadata.title,
-        ddk=corpus_metadata.dewey,
-        subject=corpus_metadata.subject,
-        lang=corpus_metadata.language,
-        limit=corpus_metadata.num_docs,
-        order_by=corpus_metadata.search_type
-    )
-
-    return dh_corpus_object
-
-
-def speadsheet_to_corpus(file) -> dh.Corpus:
-    
-    if file.filename.endswith('.csv'):
-        df = pd.read_csv(file)
-
-    elif file.filename.endswith('.xls') or file.filename.endswith('.xlsx'):
-        df = pd.read_excel(file)
-    urn_list = df["urn"].dropna().tolist() 
-    
-    return urn_list_to_corpus(tuple(urn_list))
-
-#Funksjon som lager et korpus basert på urn-er når brukeren laster opp et regneark
-@lru_cache
-def urn_list_to_corpus(urn_list: tuple[str]) -> dh.Corpus:
-    corpus = dh.Corpus()
-    corpus.extend_from_identifiers(list(urn_list))
-    return corpus.frame
-
-
-REFERENCES = {
-    "generisk referanse (1800-2022)": "reference/nob-nno_1800_2022.csv",
-    "nåtidig bokmål (2000-)": "reference/nob_2000_2022.csv",
-    "nåtidig nynorsk (2000-)": "reference/nno_2000_2022.csv",
-    "bokmål (1950-2000)": "reference/nob_1950_2000.csv",
-    "nynorsk (1950-2000)": "reference/nno_1950_2000.csv",
-    "bokmål (1920-1950)": "reference/nob_1920_1950.csv",
-    "nynorsk (1920-1950)": "reference/nno_1920_1950.csv",
-    "bokmål (1875-1920)": "reference/nob_1875_1920.csv",
-    "nynorsk (1875-1920)": "reference/nno_1875_1920.csv",
-    "tidlig dansk-norsk/bokmål (før 1875)": "reference/nob_1800_1875.csv",
-    "tidlig nynorsk (før 1875)": "reference/nob_1848_1875.csv"
-}
 
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5009)
+    app.run(host="0.0.0.0", port=5010)
