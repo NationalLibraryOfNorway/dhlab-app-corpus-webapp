@@ -241,6 +241,17 @@ def render_concordances_for_request(request: flask.Request) -> str:
 def render_collocations_for_request(request: flask.Request) -> str:
     corpus, corpus_readme = get_corpus_from_request(request)
 
+    # check first if the corpus is empty, then no collocations are expected
+    if not len(corpus):
+        return render_template(
+            "outputs/collocations.html",
+            corpus=corpus,
+            resultframe=pd.DataFrame(),
+            wordcloud_image=None,
+            order_by=None,
+            data_zip=None,
+        )
+
     # Load reference corpus
     reference_path = REFERENCE_PATH / REFERENCES.get(request.form.get("ref_korpus"))
     reference = pd.read_csv(reference_path, index_col=0, header=None, names=["word", "freq"])
@@ -254,6 +265,20 @@ def render_collocations_for_request(request: flask.Request) -> str:
         samplesize=1000,
         reference=reference,
     ).frame
+
+    # return
+    if coll.empty:
+        return render_template(
+            "outputs/collocations.html",
+            corpus=corpus,
+            resultframe=pd.DataFrame(),
+            wordcloud_image=None,
+            order_by=None,
+            data_zip=None,
+        )
+
+    print(coll)
+
     sorting_method = request.form.get("sorting_method")
     coll_selected = coll.dropna().sort_values(ascending=False, by=sorting_method)
 
@@ -269,6 +294,7 @@ def render_collocations_for_request(request: flask.Request) -> str:
 
     return render_template(
         "outputs/collocations.html",
+        corpus=corpus,
         resultframe=resultframe,
         wordcloud_image=base64.b64encode(wordcloud_image.getvalue()).decode("utf-8"),
         order_by=sorting_method,
