@@ -172,25 +172,35 @@ def render_corpus_table_for_request(request: flask.Request) -> str:
     corpus, readme = get_corpus_from_request(request)
     download_stream = dhlab_corpus_webapp.export.create_corpus_zipfile(corpus, readme)
 
-    doctypes = corpus["doctype"].unique()
-    if not doctypes:
-        doctype = "digibok"
-    elif len(doctypes) > 1:
-        return f"Feil: Korpustabell kan bare inneholde en dokumenttype. Ditt korpus inneholder {doctypes}", 406
-    doctype = doctypes.item()
+    # check for non-empty corpus, otherwise return empty table
+    if len(corpus) > 0:
+        doctypes = corpus["doctype"].unique()
+        if not doctypes:
+            doctype = "digibok"
+        elif len(doctypes) > 1:
+            return f"Feil: Korpustabell kan bare inneholde en dokumenttype. Ditt korpus inneholder {doctypes}", 406
+        doctype = doctypes.item()
 
-    corpus = parse_timestamp(corpus)
-    corpus = corpus.assign(
-        title=corpus.apply(lambda row: make_url(row.urn, row.title), axis="columns"),
-        timestamp=corpus.apply(lambda row: row.timestamp.strftime(row.timeformat), axis="columns"),
-    )[CORPUS_COLUMNS_FULL[doctype]]
+        corpus = parse_timestamp(corpus)
+        corpus = corpus.assign(
+            title=corpus.apply(lambda row: make_url(row.urn, row.title), axis="columns"),
+            timestamp=corpus.apply(lambda row: row.timestamp.strftime(row.timeformat), axis="columns"),
+        )[CORPUS_COLUMNS_FULL[doctype]]
 
-    corpus_html = corpus.to_html(table_id="results_table", classes=["display"], border=0, index=False, escape=False)
+        # prepare data and table
+        corpus_html = corpus.to_html(table_id="results_table", classes=["display"], border=0, index=False, escape=False)
+        data_zip = base64.b64encode(download_stream.getvalue()).decode("utf-8")
+        column_definitions = json.dumps(get_corpus_column_definitions(corpus, doctype))
+    else:
+        corpus_html = None
+        data_zip = None
+        column_definitions = None
+
     return render_template(
         "outputs/table.html",
         res_table=corpus_html,
-        data_zip=base64.b64encode(download_stream.getvalue()).decode("utf-8"),
-        column_definitions=json.dumps(get_corpus_column_definitions(corpus, doctype)),
+        data_zip=data_zip,
+        column_definitions=column_definitions,
     )
 
 
