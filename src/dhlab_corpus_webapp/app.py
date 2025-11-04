@@ -212,20 +212,34 @@ def render_concordances_for_request(request: flask.Request) -> str:
     query = request.form.get("search")
 
     corpus, corpus_readme = get_corpus_from_request(request)
-    doctypes = corpus["doctype"].unique()
 
-    concordances = dhlab.text.conc_coll.Concordance(
-        corpus, query=request.form.get("search"), limit=limit, window=window
-    ).frame
-    processed_conc = process_concordance_results(concordances, corpus)
-    download_stream = dhlab_corpus_webapp.export.create_concordance_zipfile(
-        corpus=corpus, corpus_readme=corpus_readme, concordances=processed_conc
-    )
+    # check first if the corpus if emtpy, then no concordances are expected
+    if len(corpus) > 0:
+        doctypes = corpus["doctype"].unique()
+
+        concordances = dhlab.text.conc_coll.Concordance(
+            corpus, query=request.form.get("search"), limit=limit, window=window
+        ).frame
+    else:
+        doctypes = None
+        concordances = None
+
+    # check if we got any concordances from the corpus
+    if concordances is not None:
+        processed_conc = process_concordance_results(concordances, corpus)
+        download_stream = dhlab_corpus_webapp.export.create_concordance_zipfile(
+            corpus=corpus, corpus_readme=corpus_readme, concordances=processed_conc
+        )
+
+        data_zip = base64.b64encode(download_stream.getvalue()).decode("utf-8")
+    else:
+        data_zip = None
+        processed_conc = pd.DataFrame()
 
     return jinja_partials.render_partial(
         "outputs/concordance.html",
         concordances=processed_conc,
-        data_zip=base64.b64encode(download_stream.getvalue()).decode("utf-8"),
+        data_zip=data_zip,
         query=query,
         doctypes=doctypes,
     )
