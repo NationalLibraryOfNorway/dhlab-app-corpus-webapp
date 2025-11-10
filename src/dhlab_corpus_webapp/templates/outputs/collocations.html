@@ -41,7 +41,7 @@
 
 <script>initializeDataTable('#results-table-coll');</script>
 {% elif not corpus.empty and resultframe.empty %}
-    <p>Fant ingen kollokasjoner i gitt korpus.</p>
+    <p><strong>Fant ingen kollokasjoner i korpuset som passer til søkekriteriene.</strong></p>
 {% else %}
-    <p><strong>Tomt korpus.</strong></p>
+    <p><strong>Du søker i et tomt korpus og derfor kan ingen kollokasjoner vises. Prøv å bygge et korpus med andre parametre.</strong></p>
 {% endif %}

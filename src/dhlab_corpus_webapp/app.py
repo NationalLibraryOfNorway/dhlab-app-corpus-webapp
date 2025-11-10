@@ -266,6 +266,9 @@ def render_collocations_for_request(request: flask.Request) -> str:
         reference=reference,
     ).frame
 
+    # drop NA
+    coll = coll.dropna()
+
     # return
     if coll.empty:
         return render_template(
@@ -276,8 +279,6 @@ def render_collocations_for_request(request: flask.Request) -> str:
             order_by=None,
             data_zip=None,
         )
-
-    print(coll)
 
     sorting_method = request.form.get("sorting_method")
     coll_selected = coll.dropna().sort_values(ascending=False, by=sorting_method)
