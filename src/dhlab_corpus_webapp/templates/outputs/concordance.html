@@ -1,3 +1,4 @@
+{% if doctypes and concordances|length > 0 %}
 <div class="datatable-container">
   <div class="scrollable-table-container">
     <table id="concordance-table" class="display">
@@ -26,5 +27,11 @@
   </div>
 </div>
 <a download="konkordanser.zip" href="data:application/zip;base64,{{ data_zip | safe }}">Last ned konkordanser</a>
+
+{% elif not doctypes %}
+    <p><strong>Du søker i et tomt korpus og derfor kan ingen konkordanser vises. Prøv å bygge et korpus med andre parametre.</strong></p>
+{% elif concordances.empty %}
+    <p><strong>Fant ingen konkordanser i korpuset som passer til søkekriteriene.</strong></p>
+{% endif %}
 
 <script>initializeDataTable('#concordance-table');</script>

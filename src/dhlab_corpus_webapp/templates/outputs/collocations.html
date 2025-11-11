@@ -1,3 +1,4 @@
+{% if not corpus.empty and not resultframe.empty %}
 <div class="gridded-container">
     <div class="datatable-container grid-column">
 
@@ -39,3 +40,8 @@
 <a download="kollokasjoner.zip" href="data:application/zip;base64,{{ data_zip | safe }}">Last ned kollokasjoner</a>
 
 <script>initializeDataTable('#results-table-coll');</script>
+{% elif not corpus.empty and resultframe.empty %}
+    <p><strong>Fant ingen kollokasjoner i korpuset som passer til søkekriteriene.</strong></p>
+{% else %}
+    <p><strong>Du søker i et tomt korpus og derfor kan ingen kollokasjoner vises. Prøv å bygge et korpus med andre parametre.</strong></p>
+{% endif %}

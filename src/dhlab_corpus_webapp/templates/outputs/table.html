@@ -1,6 +1,11 @@
+{% if res_table %}
 <div class="datatable-container">
     {{res_table | safe}}
 </div>
 
 <script>initializeDataTable('#results_table', {{ column_definitions | safe }});</script>
 <a download="korpus.zip" href="data:application/zip;base64,{{ data_zip | safe }}">Last ned korpus</a>
+
+{% else %}
+    <p><strong>Søket gav ingen treff. Prøv på nytt med andre parametre.</strong></p>
+{% endif %}

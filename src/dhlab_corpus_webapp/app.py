@@ -172,25 +172,34 @@ def render_corpus_table_for_request(request: flask.Request) -> str:
     corpus, readme = get_corpus_from_request(request)
     download_stream = dhlab_corpus_webapp.export.create_corpus_zipfile(corpus, readme)
 
+    # check for non-empty corpus, otherwise return empty table
+    if not len(corpus):
+        return render_template(
+            "outputs/table.html",
+            res_table=None,
+            data_zip=None,
+            column_definitions=None,
+        )
     doctypes = corpus["doctype"].unique()
     if not doctypes:
         doctype = "digibok"
     elif len(doctypes) > 1:
         return f"Feil: Korpustabell kan bare inneholde en dokumenttype. Ditt korpus inneholder {doctypes}", 406
     doctype = doctypes.item()
-
     corpus = parse_timestamp(corpus)
     corpus = corpus.assign(
         title=corpus.apply(lambda row: make_url(row.urn, row.title), axis="columns"),
         timestamp=corpus.apply(lambda row: row.timestamp.strftime(row.timeformat), axis="columns"),
     )[CORPUS_COLUMNS_FULL[doctype]]
-
+    # prepare data and table
     corpus_html = corpus.to_html(table_id="results_table", classes=["display"], border=0, index=False, escape=False)
+    data_zip = base64.b64encode(download_stream.getvalue()).decode("utf-8")
+    column_definitions = json.dumps(get_corpus_column_definitions(corpus, doctype))
     return render_template(
         "outputs/table.html",
         res_table=corpus_html,
-        data_zip=base64.b64encode(download_stream.getvalue()).decode("utf-8"),
-        column_definitions=json.dumps(get_corpus_column_definitions(corpus, doctype)),
+        data_zip=data_zip,
+        column_definitions=column_definitions,
     )
 
 
@@ -202,8 +211,17 @@ def render_concordances_for_request(request: flask.Request) -> str:
     query = request.form.get("search")
 
     corpus, corpus_readme = get_corpus_from_request(request)
-    doctypes = corpus["doctype"].unique()
 
+    # check first if the corpus is empty, then no concordances are expected
+    if not len(corpus):
+        return jinja_partials.render_partial(
+            "outputs/concordance.html",
+            concordances=None,
+            data_zip=None,
+            query=None,
+            doctypes=None,
+        )
+    doctypes = corpus["doctype"].unique()
     concordances = dhlab.text.conc_coll.Concordance(
         corpus, query=request.form.get("search"), limit=limit, window=window
     ).frame
@@ -211,7 +229,6 @@ def render_concordances_for_request(request: flask.Request) -> str:
     download_stream = dhlab_corpus_webapp.export.create_concordance_zipfile(
         corpus=corpus, corpus_readme=corpus_readme, concordances=processed_conc
     )
-
     return jinja_partials.render_partial(
         "outputs/concordance.html",
         concordances=processed_conc,
@@ -223,6 +240,17 @@ def render_concordances_for_request(request: flask.Request) -> str:
 
 def render_collocations_for_request(request: flask.Request) -> str:
     corpus, corpus_readme = get_corpus_from_request(request)
+
+    # check first if the corpus is empty, then no collocations are expected
+    if not len(corpus):
+        return render_template(
+            "outputs/collocations.html",
+            corpus=corpus,
+            resultframe=pd.DataFrame(),
+            wordcloud_image=None,
+            order_by=None,
+            data_zip=None,
+        )
 
     # Load reference corpus
     reference_path = REFERENCE_PATH / REFERENCES.get(request.form.get("ref_korpus"))
@@ -237,8 +265,23 @@ def render_collocations_for_request(request: flask.Request) -> str:
         samplesize=1000,
         reference=reference,
     ).frame
+
+    # drop NA (due to bug in dhlab package)
+    coll = coll.dropna()
+
+    # return
+    if coll.empty:
+        return render_template(
+            "outputs/collocations.html",
+            corpus=corpus,
+            resultframe=pd.DataFrame(),
+            wordcloud_image=None,
+            order_by=None,
+            data_zip=None,
+        )
+
     sorting_method = request.form.get("sorting_method")
-    coll_selected = coll.dropna().sort_values(ascending=False, by=sorting_method)
+    coll_selected = coll.sort_values(ascending=False, by=sorting_method)
 
     # Truncate results and create wordcloud
     max_coll = int(request.form.get("max_coll"))
@@ -252,6 +295,7 @@ def render_collocations_for_request(request: flask.Request) -> str:
 
     return render_template(
         "outputs/collocations.html",
+        corpus=corpus,
         resultframe=resultframe,
         wordcloud_image=base64.b64encode(wordcloud_image.getvalue()).decode("utf-8"),
         order_by=sorting_method,
