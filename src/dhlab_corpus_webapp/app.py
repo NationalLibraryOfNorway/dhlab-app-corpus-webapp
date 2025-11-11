@@ -266,7 +266,7 @@ def render_collocations_for_request(request: flask.Request) -> str:
         reference=reference,
     ).frame
 
-    # drop NA
+    # drop NA (due to bug in dhlab package)
     coll = coll.dropna()
 
     # return
@@ -281,7 +281,7 @@ def render_collocations_for_request(request: flask.Request) -> str:
         )
 
     sorting_method = request.form.get("sorting_method")
-    coll_selected = coll.dropna().sort_values(ascending=False, by=sorting_method)
+    coll_selected = coll.sort_values(ascending=False, by=sorting_method)
 
     # Truncate results and create wordcloud
     max_coll = int(request.form.get("max_coll"))
