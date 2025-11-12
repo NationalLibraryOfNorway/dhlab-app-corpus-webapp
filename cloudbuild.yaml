@@ -1,19 +1,19 @@
 steps:
 # Build the container image
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-f', 'Dockerfile', '-t', 'gcr.io/$PROJECT_ID/korpusutforsker:latest', '.']
+  args: ['build', '-f', 'Dockerfile', '-t', 'gcr.io/$PROJECT_ID/corpus-webapp:latest', '.']
 # Push the container image to Container Registry
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['push', 'gcr.io/$PROJECT_ID/korpusutforsker:latest']
+  args: ['push', 'gcr.io/$PROJECT_ID/corpus-webapp:latest']
 # Deploy container image to Cloud Run
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: gcloud
   args:
    - 'run'
    - 'deploy'
-   - 'korpusutforsker'
+   - 'corpus-webapp'
    - '--image'
-   - 'gcr.io/$PROJECT_ID/korpusutforsker:latest'
+   - 'gcr.io/$PROJECT_ID/corpus-webapp:latest'
    - '--region'
    - 'europe-north1'
    - '--allow-unauthenticated'
@@ -21,8 +21,7 @@ steps:
    - '1000m'  # Modifiser denne opp eller ned ved behov
    - '--memory'
    - '1Gi'  # Modifiser denne opp eller ned ved behov
-  env:
-   - 'ROOT_PATH=/korpusutforsker'
-   - 'DHLAB_CORPUS_CACHE_SIZE=64'
+   - '--set-env-vars'
+   - 'SCRIPT_NAME=/corpus-webapp,DHLAB_CORPUS_CACHE_SIZE=64'
 images:
-- 'gcr.io/$PROJECT_ID/korpusutforsker:latest'
+- 'gcr.io/$PROJECT_ID/corpus-webapp:latest'

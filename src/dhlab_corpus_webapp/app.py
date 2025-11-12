@@ -1,7 +1,6 @@
 import base64
 import io
 import json
-import os
 from pathlib import Path
 from typing import NotRequired, TypedDict
 
@@ -17,7 +16,6 @@ from wordcloud import WordCloud
 import dhlab_corpus_webapp.export
 from dhlab_corpus_webapp.corpus import get_corpus_from_request
 
-ROOT_PATH = os.environ.get("ROOT_PATH", "")
 DATA_PATH = Path(__file__).parent / "static/data"
 REFERENCE_PATH = DATA_PATH / "reference_corpora"
 LANGUAGES = json.loads((DATA_PATH / "languages.json").read_text(encoding="utf-8"))
@@ -306,8 +304,8 @@ def render_collocations_for_request(request: flask.Request) -> str:
 def create_app() -> Flask:
     app = Flask(__name__)
 
-    @app.route(f"{ROOT_PATH}/")
-    @app.route(f"{ROOT_PATH}/index.html")
+    @app.route("/")
+    @app.route("/index.html")
     @cross_origin()
     def index() -> str:
         return render_template(
@@ -318,7 +316,7 @@ def create_app() -> Flask:
             banner_link_text="Om appen",
         )
 
-    @app.route(f"{ROOT_PATH}/readme.html")
+    @app.route("/readme.html")
     @cross_origin()
     def readme() -> str:
         return render_template(
@@ -328,7 +326,7 @@ def create_app() -> Flask:
             banner_link_text="Tilbake til appen",
         )
 
-    @app.route(f"{ROOT_PATH}/corpus-definition-method", methods=["GET"])
+    @app.route("/corpus-definition-method", methods=["GET"])
     @cross_origin()
     def corpus_definition_method() -> str:
         if request.args.get("corpus-builder-method") == "upload_corpus":
@@ -336,7 +334,7 @@ def create_app() -> Flask:
 
         return render_template("corpus_definition/build_corpus.html", languages=LANGUAGES)
 
-    @app.route(f"{ROOT_PATH}/exploration-method", methods=["GET"])
+    @app.route("/exploration-method", methods=["GET"])
     @cross_origin()
     def exploration_method() -> str | flask.Response:
         selected_option = request.args.get("method")
@@ -349,7 +347,7 @@ def create_app() -> Flask:
         else:
             return flask.Response(f"Invalid exploration method {selected_option}", status=400)
 
-    @app.route(f"{ROOT_PATH}/explore", methods=["POST"])
+    @app.route("/explore", methods=["POST"])
     @cross_origin()
     def explore_corpus() -> str:
         exploration_method = request.form.get("exploration-method")
