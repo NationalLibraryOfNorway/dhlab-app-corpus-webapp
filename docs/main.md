@@ -83,8 +83,6 @@ ${this.selectedValues.map(value => `<input type="hidden" name="${this.name}" val
 this.element.insertAdjacentHTML('afterbegin', `<input type="hidden" name="${this.name}" value="${option.dataset.value}">`);
 ```
 
-
-
 ## Baksystem
 
 Flask-logikken i baksystemet ligger i [`src/dhlab_corpus_webapp/app.py`](../src/dhlab_corpus_webapp/app.py).

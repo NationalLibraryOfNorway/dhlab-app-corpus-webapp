@@ -48,7 +48,7 @@ class CorpusMetadata:
         )
 
 
-corpus_cache_size = os.environ.get("DHLAB_CORPUS_CACHE_SIZE", 64)
+corpus_cache_size = int(os.environ.get("DHLAB_CORPUS_CACHE_SIZE", 64))
 
 
 @lru_cache(maxsize=corpus_cache_size)
