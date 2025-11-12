@@ -302,7 +302,7 @@ def render_collocations_for_request(request: flask.Request) -> str:
 
 
 def create_app() -> Flask:
-    app = Flask(__name__, static_url_path="/static")
+    app = Flask(__name__)
 
     @app.route("/")
     @app.route("/index.html")
