@@ -4,7 +4,7 @@ Dette korpuset er generert med Nasjonalbibliotekets [DH-Lab](https://www.nb.no/d
 
 VIKTIG: Korpusappen tar et tilfeldig utvalg av samlingen når man bygger korpus.
 Det er derfor ikke garantert at du får samme korpus når du bruker korpusbyggeren flere ganger, selv om du har samme innstillinger i korpusdefinisjonen.
-Du bør passe godt på korpusfilen slik at resultatene du reproduserbare resultater.
+Du bør passe godt på korpusfilen for reproduserbare resultater.
 
 ## Informasjon om korpuset:
 
