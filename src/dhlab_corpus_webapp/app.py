@@ -112,7 +112,11 @@ def parse_timestamp(corpus: pd.DataFrame) -> pd.DataFrame:
 
     def get_timestamp(df: pd.DataFrame) -> pd.Series:
         timestamps = pd.to_datetime(df["timestamp"].astype(str), format="%Y%m%d", errors="coerce")
-        return timestamps.fillna(pd.Timestamp("1900-01-01"))
+        missing_mask = timestamps.isna()
+        if missing_mask.any():
+            year_fallback = pd.to_datetime(df.loc[missing_mask, "year"].astype(str), format="%Y", errors="coerce")
+            timestamps.loc[missing_mask] = year_fallback
+        return timestamps.fillna(pd.NaT)
 
     return corpus.assign(timeformat=get_timeformat, timestamp=get_timestamp)
 
