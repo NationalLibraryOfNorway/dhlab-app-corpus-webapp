@@ -191,7 +191,9 @@ def render_corpus_table_for_request(request: flask.Request) -> str:
     corpus = parse_timestamp(corpus)
     corpus = corpus.assign(
         title=corpus.apply(lambda row: make_url(row.urn, row.title), axis="columns"),
-        timestamp=corpus.apply(lambda row: row.timestamp.strftime(row.timeformat), axis="columns"),
+        timestamp=corpus.apply(
+            lambda row: "Ukjent" if pd.isnull(row.timestamp) else row.timestamp.strftime(row.timeformat), axis="columns"
+        ),
     )[CORPUS_COLUMNS_FULL[doctype]]
     # prepare data and table
     corpus_html = corpus.to_html(table_id="results_table", classes=["display"], border=0, index=False, escape=False)
