@@ -112,7 +112,11 @@ def parse_timestamp(corpus: pd.DataFrame) -> pd.DataFrame:
 
     def get_timestamp(df: pd.DataFrame) -> pd.Series:
         timestamps = pd.to_datetime(df["timestamp"].astype(str), format="%Y%m%d", errors="coerce")
-        return timestamps.fillna(pd.Timestamp("1900-01-01"))
+        missing_mask = timestamps.isna()
+        if missing_mask.any():
+            year_fallback = pd.to_datetime(df.loc[missing_mask, "year"].astype(str), format="%Y", errors="coerce")
+            timestamps.loc[missing_mask] = year_fallback
+        return timestamps.fillna(pd.NaT)
 
     return corpus.assign(timeformat=get_timeformat, timestamp=get_timestamp)
 
@@ -187,7 +191,9 @@ def render_corpus_table_for_request(request: flask.Request) -> str:
     corpus = parse_timestamp(corpus)
     corpus = corpus.assign(
         title=corpus.apply(lambda row: make_url(row.urn, row.title), axis="columns"),
-        timestamp=corpus.apply(lambda row: row.timestamp.strftime(row.timeformat), axis="columns"),
+        timestamp=corpus.apply(
+            lambda row: "Ukjent" if pd.isnull(row.timestamp) else row.timestamp.strftime(row.timeformat), axis="columns"
+        ),
     )[CORPUS_COLUMNS_FULL[doctype]]
     # prepare data and table
     corpus_html = corpus.to_html(table_id="results_table", classes=["display"], border=0, index=False, escape=False)
