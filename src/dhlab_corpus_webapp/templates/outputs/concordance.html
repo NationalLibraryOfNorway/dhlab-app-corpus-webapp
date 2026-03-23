@@ -9,7 +9,8 @@
         <tr>
           <th scope="col">Tittel</th>
           <th scope="col">Kontekst</th>
-          {% if "digavis" not in doctypes or doctypes|length > 1 %}<th scope="col">Forfatter</th>{%- endif %}
+          {% if ( "digavis" not in doctypes and "nettavis" not in doctypes) or doctypes|length > 1 %}<th scope="col">Forfatter</th>{%- endif %}
+          {% if "nettavis" in doctypes %}<th scope="col">URL</th>{%- endif %}
           <th scope="col">Utgitt</th>
         </tr>
       </thead>
@@ -18,7 +19,8 @@
           <tr>
               <th scope="row"><a href="https://www.nb.no/items/{{row.urn}}?searchText={{query}}" target="_blank">{{row.title}}</a></th>
               <td>{{row.concordance | safe}}</td>
-              {% if "digavis" not in doctypes or doctypes|length> 1 %}<td>{{row.authors}}</td>{%- endif %}
+              {% if ("digavis" not in doctypes and 'nettavis' not in doctypes) or doctypes|length> 1 %}<td>{{row.authors}}</td>{%- endif %}
+              {% if "nettavis" in doctypes  %}<td>{{row.oaiid}}</td>{%- endif %}
               <td>{{row.timestamp.strftime(row.timeformat)}}</td>
           </tr>
       {% endfor %}

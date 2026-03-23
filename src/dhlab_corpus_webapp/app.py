@@ -60,7 +60,7 @@ CORPUS_COLUMNS_FULL: dict[str, list[str]] = {
     ],
     "nettavis": [
         "dhlabid",
-        "urn",
+        "oaiid",
         "title",
         "city",
         "timestamp",
@@ -76,14 +76,14 @@ CORPUS_COLUMNS_MINIMAL: dict[str, list[str]] = {
     "digistorting": ["title", "timestamp"],
     "digimanus": ["authors", "title", "timestamp"],
     "kudos": ["authors", "title", "timestamp"],
-    "nettavis": ["title", "timestamp"],
+    "nettavis": ["title", "oaiid", "timestamp"],
 }
 COLUMN_NAMES = {
     "urn": "URN",
     "authors": "Forfattere",
     "title": "Tittel",
     "city": "Sted",
-    "timestamp": "Tidspunkt",
+    "timestamp": "Dato",
     "year": "År",
     "publisher": "Utgiver",
     "ddc": "Dewey",
