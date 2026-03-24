@@ -4,20 +4,35 @@
     {% include 'components/head.html' %}
 
     <title>{{ app_name }}</title>
+    <style>
+        /* CSS rules for showing relevant input and output fields  */
+        .method-fields, .mode-output, .corpus-method-fields { display: none; }
+        .show-table .form-table, .show-table .output-table { display: block; }
+        .show-concordance .form-concordance, .show-concordance .output-concordance { display: block; }
+        .show-collocations .form-collocations, .show-collocations .output-collocations { display: block; }
+        .show-build_corpus .form-build_corpus { display: block; }
+        .show-upload_corpus .form-upload_corpus { display: block; }
+    </style>
 </head>
-<body>
+<body class="show-table">
     <main>
         <header>
             {% include 'components/banner.html' with context %}
             <h1>Bygg og utforsk et DH-LAB-korpus</h1>
 
             <p>
-                Denne appen lar deg bygge et korpus basert på <a target=_blank rel=noopener href="https://www.nb.no/search">Nasjonalbibliotekets samling</a>.
+                Denne appen lar deg bygge et korpus basert på <a target=_blank rel=noopener href="https://www.nb.no">Nasjonalbibliotekets samling</a>.
                 Du kan så velge å vise korpuset direkte som <em>tabell</em> eller dykke dypere og utforske <em>kollokasjoner</em> eller <em>konkordanser</em> i korpuset.
-                Korpustabellen kan også brukes i andre <a target=_blank rel=noopener href="https://www.nb.no/dh-lab/apper/">DH-LAB-apper</a>.
+                Korpustabellen kan også brukes i andre <a target=_blank rel=noopener href="https://www.nb.no">DH-LAB-apper</a>.
             </p>
 
         </header>
+
+        <form id="update-corpus-form"
+            hx-post="{{ url_for('explore_corpus') }}"
+            hx-encoding="multipart/form-data"
+            hx-target="#output-table"
+            hx-indicator="#loading">
 
         <details open>
             <summary>Vis/skjul korpusdefinisjon</summary>
@@ -26,62 +41,85 @@
             <select
                 name="corpus-builder-method"
                 id="corpus-builder-method"
-                hx-get="corpus-definition-method"
-                hx-target="#search-form-corpus"
-                hx-trigger="change, load"
-                hx-request='{"noHeaders": true}'
+                onchange="document.getElementById('search-form-corpus').className = 'show-' + this.value"
             >
                 <option value="build_corpus">Bygg korpus basert på valg</option>
                 <option value="upload_corpus">Last opp korpusdefinisjon</option>
             </select>
 
-            <form id="search-form-corpus">
-                {% include 'corpus_definition/build_corpus.html' with context %}
-            </form>
+            <div id="search-form-corpus" class="show-build_corpus">
+                <div class="corpus-method-fields form-build_corpus">
+                    {% include 'corpus_definition/build_corpus.html' with context %}
+                </div>
+                <div class="corpus-method-fields form-upload_corpus">
+                    {% include 'corpus_definition/upload_corpus.html' with context %}
+                </div>
+            </div>
         </details>
 
 
-            <form
-                id="exploration-method-form"
-                hx-get="exploration-method"
-                hx-target="#update-corpus-form"
-                hx-trigger="change, load"
-                hx-request='{"noHeaders": true}'
-            >
+            <div id="exploration-method-form">
 
                 <span>Utforskingsmetode:</span>
                 <span class="method-option-container">
-                    <input type="radio" id="table" name="method" value="table" checked />
+                    <input type="radio" id="table" name="method-toggle" value="table" checked />
                     <label for="table">Korpustabell</label>
                 </span>
                 <span class="method-option-container">
-                    <input type="radio" id="concordance" name="method" value="concordance" />
+                    <input type="radio" id="concordance" name="method-toggle" value="concordance" />
                     <label for="concordance">Konkordanser</label>
                 </span>
                 <span class="method-option-container">
-                    <input type="radio" id="collocations" name="method" value="collocations" />
+                    <input type="radio" id="collocations" name="method-toggle" value="collocations" />
                     <label for="collocations">Kollokasjoner</label>
                 </span>
-            </form>
+            </div>
 
 
         <div id="corpus-exploration">
-            <form id="update-corpus-form"
-                hx-post="explore"
-                hx-encoding="multipart/form-data"
-                hx-target="#output"
-                hx-trigger="submit"
-                hx-indicator="#loading"
-            >
-            </form>
+            <!-- Hidden state for backend -->
+            <input type="hidden" name="exploration-method" id="active-method" value="table">
+
+            <div class="method-fields form-table">
+                {% include 'exploration_methods/table.html' %}
+            </div>
+            <div class="method-fields form-concordance">
+                {% include 'exploration_methods/concordance.html' %}
+            </div>
+            <div class="method-fields form-collocations">
+                {% include 'exploration_methods/collocations.html' with context %}
+            </div>
+            
             <div id="loading">
                 <div>Henter ut resultater</div>
                 <span class="loader"></span>
             </div>
         </div>
 
-        <div id="output"></div>
+        </form>
+
+        <!-- Output divs -->
+        <div id="output-table" class="mode-output output-table"></div>
+        <div id="output-concordance" class="mode-output output-concordance"></div>
+        <div id="output-collocations" class="mode-output output-collocations"></div>
 
     </main>
+
+    <script>
+        document.addEventListener('change', function(e) {
+            if (e.target.name === 'method-toggle') {
+                const mode = e.target.value;
+                const form = document.getElementById('update-corpus-form');
+                document.body.className = `show-${mode}`;
+                document.getElementById('active-method').value = mode;
+                form.setAttribute('hx-target', `#output-${mode}`);
+                htmx.process(form);
+
+                // Disable hidden inputs to prevent validation blocking
+                form.querySelectorAll('.method-fields input, .method-fields select').forEach(el => el.disabled = true);
+                form.querySelectorAll(`.form-${mode} input, .form-${mode} select`).forEach(el => el.disabled = false);
+            }
+        });
+    </script>
 </body>
 </html>

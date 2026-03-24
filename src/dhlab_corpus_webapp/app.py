@@ -317,6 +317,7 @@ def create_app() -> Flask:
         return render_template(
             "index.html",
             languages=LANGUAGES,
+            reference_corpora=REFERENCES,
             app_name="Korpusutforsker",
             banner_link_url="readme.html",
             banner_link_text="Om appen",
@@ -339,19 +340,6 @@ def create_app() -> Flask:
             return render_template("corpus_definition/upload_corpus.html")
 
         return render_template("corpus_definition/build_corpus.html", languages=LANGUAGES)
-
-    @app.route("/exploration-method", methods=["GET"])
-    @cross_origin()
-    def exploration_method() -> str | flask.Response:
-        selected_option = request.args.get("method")
-        if selected_option == "table":
-            return render_template("exploration_methods/table.html")
-        elif selected_option == "collocations":
-            return render_template("exploration_methods/collocations.html", reference_corpora=REFERENCES)
-        elif selected_option == "concordance":
-            return render_template("exploration_methods/concordance.html")
-        else:
-            return flask.Response(f"Invalid exploration method {selected_option}", status=400)
 
     @app.route("/explore", methods=["POST"])
     @cross_origin()
